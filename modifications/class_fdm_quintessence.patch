@@ -1,0 +1,33 @@
+--- a/source/perturbations.c
++++ b/source/perturbations.c
+@@
++/* FDM + Quintessence - Silvio A. Corrêa Junior */
++/* Added two scalar fields: Psi (FDM) and phi (quintessence) */
++
++/* In perturbations_init(): add new species */
++if (ppt->has_fdm == _TRUE_) {
++  class_call(perturbations_add_scalar_field(ppr, pba, ppt, pvec, index_pt, "Psi"),
++             ppt->error_message, ppt->error_message);
++}
++if (ppt->has_quintessence == _TRUE_) {
++  class_call(perturbations_add_scalar_field(ppr, pba, ppt, pvec, index_pt, "phi"),
++             ppt->error_message, ppt->error_message);
++}
++
++/* In perturbations_derivs(): add KG equations */
++if (ppt->has_fdm == _TRUE_) {
++  double m2_a2 = pow(pba->a_today,2) * pow(ppt->m_Psi,2);
++  y[index_pt_delta_Psi]' = -y[index_pt_theta_Psi] - 0.5 * y[index_pt_h_prime] * y[index_pt_Psi];
++  y[index_pt_theta_Psi]' = -pba->H0 * pba->a_today / pba->a * y[index_pt_theta_Psi]
++                           + k*k * y[index_pt_delta_Psi]
++                           - m2_a2 * y[index_pt_delta_Psi];
++}
++
++if (ppt->has_quintessence == _TRUE_) {
++  double Vpp = -pow(ppt->M_quint,4)/pow(ppt->f_quint,2) * cos(y[index_pt_phi]/ppt->f_quint);
++  double m2_eff = pow(pba->a_today,2) * Vpp;
++  y[index_pt_delta_phi]' = -y[index_pt_theta_phi] - 0.5 * y[index_pt_h_prime] * y[index_pt_phi_prime];
++  y[index_pt_theta_phi]' = -pba->H0 * pba->a_today / pba->a * y[index_pt_theta_phi]
++                           + k*k * y[index_pt_delta_phi]
++                           - m2_eff * y[index_pt_delta_phi];
++}
