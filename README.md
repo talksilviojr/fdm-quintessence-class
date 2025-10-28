@@ -16,6 +16,6 @@ Modified CLASS code for a unified dark sector:
 ```bash
 git clone https://github.com/lesgourgues/class_public.git class_fdmq
 cd class_fdmq
-git clone https://github.com/silviocorrea/fdm-quintessence-class.git modifications
+git clone https://github.com/talksilviojr/fdm-quintessence-class.git modifications
 patch -p1 < modifications/class_fdm_quintessence.patch
 make
