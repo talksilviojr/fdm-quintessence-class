@@ -1,677 +1,140 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FDM Quintessence Class - Documentação</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --text: #333;
-            --text-light: #7f8c8d;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f9f9f9;
-            color: var(--text);
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 2rem 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo-icon {
-            font-size: 2.5rem;
-        }
-        
-        .logo-text h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-        
-        .logo-text p {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-        
-        .github-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .github-link:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        nav {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-        
-        .nav-links li a {
-            display: block;
-            padding: 15px 20px;
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .nav-links li a:hover, .nav-links li a.active {
-            color: var(--secondary);
-            border-bottom: 3px solid var(--secondary);
-        }
-        
-        main {
-            padding: 3rem 0;
-        }
-        
-        .section {
-            margin-bottom: 4rem;
-            background-color: white;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .section h2 {
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--light);
-        }
-        
-        .section h3 {
-            color: var(--secondary);
-            margin: 1.5rem 0 1rem;
-        }
-        
-        .section p {
-            margin-bottom: 1rem;
-        }
-        
-        .code-block {
-            background-color: #2d2d2d;
-            color: #f8f8f2;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        
-        .code-comment {
-            color: #75715e;
-        }
-        
-        .code-keyword {
-            color: #f92672;
-        }
-        
-        .code-function {
-            color: #66d9ef;
-        }
-        
-        .code-string {
-            color: #e6db74;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .feature-card {
-            background-color: var(--light);
-            padding: 1.5rem;
-            border-radius: 8px;
-            transition: transform 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--secondary);
-            margin-bottom: 1rem;
-        }
-        
-        .feature-card h3 {
-            margin-bottom: 0.5rem;
-        }
-        
-        .installation-steps {
-            counter-reset: step-counter;
-            margin: 2rem 0;
-        }
-        
-        .step {
-            display: flex;
-            margin-bottom: 1.5rem;
-            align-items: flex-start;
-        }
-        
-        .step:before {
-            counter-increment: step-counter;
-            content: counter(step-counter);
-            background-color: var(--secondary);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .example-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .example-tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .example-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .example-tab.active {
-            border-bottom: 3px solid var(--secondary);
-            color: var(--secondary);
-            font-weight: 600;
-        }
-        
-        .example-content {
-            display: none;
-        }
-        
-        .example-content.active {
-            display: block;
-        }
-        
-        footer {
-            background-color: var(--dark);
-            color: white;
-            padding: 3rem 0;
-            text-align: center;
-        }
-        
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-        
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-links a:hover {
-            color: var(--secondary);
-        }
-        
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1.5rem;
-                text-align: center;
-            }
-            
-            .nav-links {
-                flex-direction: column;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FDM + Quintessence in CLASS</title>
+  <meta name="description" content="Modified CLASS code for Fuzzy Dark Matter + Quintessence. Resolves S8 tension (S8 ≈ 0.79). Open source, reproducible.">
+  <style>
+    :root { --primary: #1a5fb4; --secondary: #155396; --light: #f8f9fa; --text: #333; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { background: var(--light); color: var(--text); line-height: 1.7; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 3rem 0; text-align: center; }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .subtitle { font-size: 1.2rem; opacity: 0.9; }
+    nav { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+    .nav-links { display: flex; list-style: none; justify-content: center; }
+    .nav-links a { padding: 15px 25px; color: var(--text); text-decoration: none; font-weight: 500; }
+    .nav-links a:hover, .nav-links a.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+    main { padding: 3rem 0; }
+    .section { margin-bottom: 3rem; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    h2 { color: var(--primary); margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+    pre { background: #2d2d2d; color: #f8f8f2; padding: 1.2rem; border-radius: 8px; overflow-x: auto; font-size: 0.95rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+    th { background: var(--primary); color: white; }
+    .highlight { background: #fff3cd; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
+    .btn { display: inline-block; padding: 12px 28px; background: var(--primary); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 5px; }
+    .btn:hover { background: var(--secondary); }
+    footer { text-align: center; padding: 2rem; background: #2c3e50; color: white; margin-top: 3rem; }
+    img { max-width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    @media (max-width: 768px) { .nav-links { flex-direction: column; } }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">⚡</div>
-                    <div class="logo-text">
-                        <h1>FDM Quintessence Class</h1>
-                        <p>Uma classe avançada para modelagem de quintessência em FDM</p>
-                    </div>
-                </div>
-                <a href="https://github.com/talksilviojr/fdm-quintessence-class" class="github-link" target="_blank">
-                    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-                    </svg>
-                    Ver no GitHub
-                </a>
-            </div>
-        </div>
-    </header>
-    
-    <nav>
-        <div class="container">
-            <ul class="nav-links">
-                <li><a href="#overview" class="active">Visão Geral</a></li>
-                <li><a href="#installation">Instalação</a></li>
-                <li><a href="#usage">Como Usar</a></li>
-                <li><a href="#examples">Exemplos</a></li>
-                <li><a href="#api">API</a></li>
-            </ul>
-        </div>
-    </nav>
-    
-    <main class="container">
-        <section id="overview" class="section">
-            <h2>Visão Geral</h2>
-            <p>O <strong>FDM Quintessence Class</strong> é uma implementação avançada para modelagem de quintessência em FDM (Finite Difference Method). Esta classe fornece ferramentas e métodos para simular e analisar fenômenos de quintessência em diversos contextos físicos e matemáticos.</p>
-            
-            <p>A quintessência é um conceito em cosmologia que se refere a uma forma hipotética de energia escura, um campo dinâmico cuja equação de estado varia com o tempo. Esta classe implementa métodos numéricos para resolver equações diferenciais relacionadas a esses fenômenos.</p>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔬</div>
-                    <h3>Modelagem Avançada</h3>
-                    <p>Implementa métodos numéricos sofisticados para simulação de quintessência com alta precisão.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Alto Desempenho</h3>
-                    <p>Otimizado para processamento eficiente de grandes conjuntos de dados e simulações complexas.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🛠️</div>
-                    <h3>Fácil Integração</h3>
-                    <p>Interface simples para integração com outros projetos e frameworks científicos.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Visualização de Dados</h3>
-                    <p>Ferramentas integradas para visualização e análise dos resultados das simulações.</p>
-                </div>
-            </div>
-        </section>
-        
-        <section id="installation" class="section">
-            <h2>Instalação</h2>
-            <p>Siga estas etapas para instalar e configurar o FDM Quintessence Class em seu projeto:</p>
-            
-            <div class="installation-steps">
-                <div class="step">
-                    <div>
-                        <h3>Clone o repositório</h3>
-                        <p>Comece clonando o repositório do GitHub para sua máquina local:</p>
-                        <div class="code-block">
-                            <span class="code-comment"># Clone o repositório</span><br>
-                            git clone https://github.com/talksilviojr/fdm-quintessence-class.git<br>
-                            <span class="code-comment"># Navegue para o diretório</span><br>
-                            cd fdm-quintessence-class
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div>
-                        <h3>Instale as dependências</h3>
-                        <p>Instale as dependências necessárias usando o gerenciador de pacotes apropriado:</p>
-                        <div class="code-block">
-                            <span class="code-comment"># Usando pip (Python)</span><br>
-                            pip install -r requirements.txt
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div>
-                        <h3>Importe no seu projeto</h3>
-                        <p>Importe a classe Quintessence em seu código Python:</p>
-                        <div class="code-block">
-                            <span class="code-keyword">from</span> fdm_quintessence <span class="code-keyword">import</span> Quintessence
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="usage" class="section">
-            <h2>Como Usar</h2>
-            <p>Aqui está um guia básico sobre como utilizar a classe FDM Quintessence em seus projetos:</p>
-            
-            <div class="code-block">
-                <span class="code-comment"># Importação da classe</span><br>
-                <span class="code-keyword">from</span> fdm_quintessence <span class="code-keyword">import</span> Quintessence<br>
-                <span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np<br>
-                <br>
-                <span class="code-comment"># Inicialização do modelo</span><br>
-                model = Quintessence(<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;domain_size=100,<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;time_steps=500,<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;initial_conditions=<span class="code-string">'gaussian'</span><br>
-                )<br>
-                <br>
-                <span class="code-comment"># Configuração de parâmetros</span><br>
-                model.set_parameters(<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;alpha=0.5,<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;beta=1.2,<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;potential=<span class="code-string">'exponential'</span><br>
-                )<br>
-                <br>
-                <span class="code-comment"># Execução da simulação</span><br>
-                results = model.simulate()<br>
-                <br>
-                <span class="code-comment"># Visualização dos resultados</span><br>
-                model.plot_evolution()<br>
-                model.plot_energy_density()
-            </div>
-            
-            <h3>Configuração de Parâmetros</h3>
-            <p>A classe oferece diversos parâmetros que podem ser ajustados para diferentes cenários de simulação:</p>
-            
-            <ul>
-                <li><strong>domain_size</strong>: Tamanho do domínio espacial para a simulação</li>
-                <li><strong>time_steps</strong>: Número de passos de tempo para a evolução</li>
-                <li><strong>initial_conditions</strong>: Condições iniciais do campo (gaussian, random, custom)</li>
-                <li><strong>alpha, beta</strong>: Parâmetros do modelo de quintessência</li>
-                <li><strong>potential</strong>: Tipo de potencial (exponential, power_law, custom)</li>
-            </ul>
-        </section>
-        
-        <section id="examples" class="section">
-            <h2>Exemplos</h2>
-            <p>Explore estes exemplos práticos para entender melhor as capacidades da FDM Quintessence Class:</p>
-            
-            <div class="example-container">
-                <div class="example-tabs">
-                    <div class="example-tab active" onclick="switchExample('example1')">Exemplo 1: Simulação Básica</div>
-                    <div class="example-tab" onclick="switchExample('example2')">Exemplo 2: Potencial Personalizado</div>
-                    <div class="example-tab" onclick="switchExample('example3')">Exemplo 3: Análise de Energia</div>
-                </div>
-                
-                <div id="example1" class="example-content active">
-                    <h3>Simulação Básica de Quintessência</h3>
-                    <p>Este exemplo demonstra uma simulação básica com condições iniciais gaussianas:</p>
-                    <div class="code-block">
-                        <span class="code-comment"># Exemplo de simulação básica</span><br>
-                        <span class="code-keyword">from</span> fdm_quintessence <span class="code-keyword">import</span> Quintessence<br>
-                        <span class="code-keyword">import</span> matplotlib.pyplot <span class="code-keyword">as</span> plt<br>
-                        <br>
-                        <span class="code-comment"># Criar e configurar o modelo</span><br>
-                        model = Quintessence(domain_size=200, time_steps=1000)<br>
-                        model.set_parameters(alpha=0.7, beta=1.5)<br>
-                        <br>
-                        <span class="code-comment"># Executar simulação</span><br>
-                        results = model.simulate()<br>
-                        <br>
-                        <span class="code-comment"># Visualizar evolução temporal</span><br>
-                        model.plot_evolution()<br>
-                        plt.title(<span class="code-string">'Evolução do Campo de Quintessência'</span>)<br>
-                        plt.show()
-                    </div>
-                </div>
-                
-                <div id="example2" class="example-content">
-                    <h3>Simulação com Potencial Personalizado</h3>
-                    <p>Este exemplo mostra como usar um potencial personalizado para a quintessência:</p>
-                    <div class="code-block">
-                        <span class="code-comment"># Exemplo com potencial personalizado</span><br>
-                        <span class="code-keyword">from</span> fdm_quintessence <span class="code-keyword">import</span> Quintessence<br>
-                        <span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np<br>
-                        <br>
-                        <span class="code-comment"># Definir função de potencial personalizado</span><br>
-                        <span class="code-keyword">def</span> <span class="code-function">custom_potential</span>(phi):<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> 0.5 * phi**2 + 0.25 * phi**4<br>
-                        <br>
-                        <span class="code-comment"># Configurar modelo com potencial personalizado</span><br>
-                        model = Quintessence()<br>
-                        model.set_parameters(potential=custom_potential)<br>
-                        <br>
-                        <span class="code-comment"># Executar simulação e visualizar resultados</span><br>
-                        results = model.simulate()<br>
-                        model.plot_potential()<br>
-                        model.plot_phase_diagram()
-                    </div>
-                </div>
-                
-                <div id="example3" class="example-content">
-                    <h3>Análise de Densidade de Energia</h3>
-                    <p>Este exemplo foca na análise da densidade de energia durante a evolução:</p>
-                    <div class="code-block">
-                        <span class="code-comment"># Análise de densidade de energia</span><br>
-                        <span class="code-keyword">from</span> fdm_quintessence <span class="code-keyword">import</span> Quintessence<br>
-                        <br>
-                        <span class="code-comment"># Configurar modelo para análise detalhada</span><br>
-                        model = Quintessence(<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;domain_size=150,<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;time_steps=800,<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;initial_conditions=<span class="code-string">'random'</span><br>
-                        )<br>
-                        <br>
-                        <span class="code-comment"># Executar simulação com saída detalhada</span><br>
-                        results = model.simulate(verbose=<span class="code-keyword">True</span>)<br>
-                        <br>
-                        <span class="code-comment"># Analisar componentes de energia</span><br>
-                        kinetic_energy = model.calculate_kinetic_energy()<br>
-                        potential_energy = model.calculate_potential_energy()<br>
-                        total_energy = model.calculate_total_energy()<br>
-                        <br>
-                        <span class="code-comment"># Plotar evolução das energias</span><br>
-                        model.plot_energy_components()
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="api" class="section">
-            <h2>Referência da API</h2>
-            <p>Documentação completa dos métodos e parâmetros disponíveis na classe Quintessence:</p>
-            
-            <h3>Métodos Principais</h3>
-            
-            <h4>__init__(domain_size=100, time_steps=500, initial_conditions='gaussian')</h4>
-            <p>Inicializa uma nova instância da classe Quintessence.</p>
-            <ul>
-                <li><strong>domain_size</strong>: Tamanho do domínio espacial (padrão: 100)</li>
-                <li><strong>time_steps</strong>: Número de passos de tempo (padrão: 500)</li>
-                <li><strong>initial_conditions</strong>: Tipo de condições iniciais ('gaussian', 'random', 'custom')</li>
-            </ul>
-            
-            <h4>set_parameters(alpha=1.0, beta=1.0, potential='exponential')</h4>
-            <p>Configura os parâmetros do modelo de quintessência.</p>
-            <ul>
-                <li><strong>alpha</strong>: Parâmetro alpha do modelo (padrão: 1.0)</li>
-                <li><strong>beta</strong>: Parâmetro beta do modelo (padrão: 1.0)</li>
-                <li><strong>potential</strong>: Função de potencial ('exponential', 'power_law' ou função personalizada)</li>
-            </ul>
-            
-            <h4>simulate(verbose=False)</h4>
-            <p>Executa a simulação do modelo de quintessência.</p>
-            <ul>
-                <li><strong>verbose</strong>: Se True, exibe informações de progresso (padrão: False)</li>
-                <li><strong>Retorna</strong>: Array com os resultados da simulação</li>
-            </ul>
-            
-            <h4>plot_evolution()</h4>
-            <p>Gera um gráfico da evolução temporal do campo de quintessência.</p>
-            
-            <h4>plot_energy_density()</h4>
-            <p>Gera um gráfico da densidade de energia ao longo do tempo.</p>
-            
-            <h3>Métodos de Análise</h3>
-            <ul>
-                <li><strong>calculate_kinetic_energy()</strong>: Calcula a energia cinética do campo</li>
-                <li><strong>calculate_potential_energy()</strong>: Calcula a energia potencial do campo</li>
-                <li><strong>calculate_total_energy()</strong>: Calcula a energia total do campo</li>
-                <li><strong>get_equation_of_state()</strong>: Calcula o parâmetro da equação de estado</li>
-            </ul>
-        </section>
-    </main>
-    
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="logo">
-                    <div class="logo-icon">⚡</div>
-                    <div class="logo-text">
-                        <h2>FDM Quintessence Class</h2>
-                    </div>
-                </div>
-                <p>Uma biblioteca avançada para modelagem de quintessência usando o método das diferenças finitas.</p>
-                <ul class="footer-links">
-                    <li><a href="https://github.com/talksilviojr/fdm-quintessence-class" target="_blank">GitHub</a></li>
-                    <li><a href="#documentation">Documentação</a></li>
-                    <li><a href="#examples">Exemplos</a></li>
-                    <li><a href="#contact">Contato</a></li>
-                </ul>
-                <p>&copy; 2023 FDM Quintessence Class. Desenvolvido por Silvio Jr.</p>
-            </div>
-        </div>
-    </footer>
-    
-    <script>
-        // Função para alternar entre exemplos
-        function switchExample(exampleId) {
-            // Esconder todos os conteúdos de exemplo
-            document.querySelectorAll('.example-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Mostrar o conteúdo selecionado
-            document.getElementById(exampleId).classList.add('active');
-            
-            // Atualizar abas ativas
-            document.querySelectorAll('.example-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Encontrar e ativar a aba correspondente
-            const tabs = document.querySelectorAll('.example-tab');
-            for (let i = 0; i < tabs.length; i++) {
-                if (tabs[i].textContent.includes(exampleId.replace('example', 'Exemplo '))) {
-                    tabs[i].classList.add('active');
-                    break;
-                }
-            }
-        }
-        
-        // Navegação suave para âncoras
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    // Atualizar menu de navegação
-                    document.querySelectorAll('.nav-links a').forEach(link => {
-                        link.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // Rolagem suave
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 100,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-        
-        // Atualizar menu ativo durante a rolagem
-        window.addEventListener('scroll', function() {
-            const sections = document.querySelectorAll('.section');
-            const navLinks = document.querySelectorAll('.nav-links a');
-            
-            let currentSection = '';
-            
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (scrollY >= (sectionTop - 150)) {
-                    currentSection = section.getAttribute('id');
-                }
-            });
-            
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === `#${currentSection}`) {
-                    link.classList.add('active');
-                }
-            });
-        });
-    </script>
+
+<header>
+  <div class="container">
+    <h1>FDM + Quintessence in CLASS</h1>
+    <p class="subtitle">Modified CLASS code for a unified dark sector model</p>
+    <p><strong>S<sub>8</sub> ≈ <span class="highlight">0.792</span></strong> | <strong>w<sub>0</sub> ≈ <span class="highlight">-0.918</span></strong></p>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <ul class="nav-links">
+      <li><a href="#overview" class="active">Overview</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="#run">Run</a></li>
+      <li><a href="#publications">Publications</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container">
+
+  <section id="overview" class="section">
+    <h2>Overview</h2>
+    <p>This is a <strong>modified version of the CLASS code</strong> (Cosmic Linear Anisotropy Solving System) that implements a <strong>unified dark sector</strong> combining:</p>
+    <ul>
+      <li><strong>Fuzzy Dark Matter (FDM)</strong>: ultra-light scalar field Ψ with <code>m_Ψ = 10⁻²² eV</code></li>
+      <li><strong>Axion-like Quintessence</strong>: potential <code>V(φ) = M⁴ [1 + cos(φ/f)]</code></li>
+    </ul>
+    <p>Fully integrated in background and linear perturbation equations. Reproduces ΛCDM on large scales, suppresses small-scale power via quantum pressure.</p>
+  </section>
+
+  <section id="results" class="section">
+    <h2>Key Results</h2>
+    <table>
+      <tr><th>Parameter</th><th>ΛCDM</th><th>FDM + Quintessence</th></tr>
+      <tr><td>S<sub>8</sub></td><td>0.832</td><td><span class="highlight">0.792</span></td></tr>
+      <tr><td>w<sub>0</sub></td><td>-1.000</td><td><span class="highlight">-0.918</span></td></tr>
+      <tr>< S<sub>8</sub> tension relieved | Thawing dark energy</td></tr>
+    </table>
+    <img src="s8_comparison.png" alt="S8 comparison" width="600">
+    <p><em>Figure: S<sub>8</sub> suppression due to FDM quantum pressure.</em></p>
+  </section>
+
+  <section id="install" class="section">
+    <h2>Installation</h2>
+    <pre>
+# Clone CLASS
+git clone https://github.com/lesgourgues/class_public.git class_fdmq
+cd class_fdmq
+
+# Clone modifications
+git clone https://github.com/talksilviojr/fdm-quintessence-class.git modifications
+
+# Apply patch
+patch -p1 < modifications/class_fdm_quintessence.patch
+
+# Compile
+make
+</pre>
+  </section>
+
+  <section id="run" class="section">
+    <h2>Run Benchmark</h2>
+    <pre>
+./class explanatory.ini
+</pre>
+    <p>Output: <code>S<sub>8</sub> = 0.792</code>, <code>w<sub>0</sub> = -0.918</code></p>
+  </section>
+
+  <section id="publications" class="section">
+    <h2>Publications</h2>
+    <ul>
+      <li>Submitted to <em>Journal of Mathematical Physics (AIP)</em> – ID: <strong>JMP25-AR-02036</strong></li>
+      <li>Zenodo (in review): <a href="https://zenodo.org/records/XXXXXXX">DOI pending</a></li>
+    </ul>
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="https://github.com/talksilviojr/fdm-quintessence-class" class="btn">GitHub Repository</a>
+      <a href="https://silvioantoniocorreajunior.com.br" class="btn">Official Site</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p><strong>FDM + Quintessence in CLASS</strong> © 2025 Silvio A. Corrêa Junior</p>
+  <p>Independent Researcher | Santos, SP, Brazil</p>
+</footer>
+
+<script>
+  // Smooth scroll + active nav
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      window.scrollTo({ top: target.offsetTop - 100, behavior: 'smooth' });
+      document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+</script>
+
 </body>
 </html>
