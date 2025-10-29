@@ -1,7 +1,7 @@
 # FDM + Quintessence in CLASS  
 **Author**: Silvio A. Corrêa Junior  
 **Paper**: [arXiv:XXXX.XXXXX](https://arxiv.org) *(to be updated)*  
-**JCAP Submission**: October 2025  
+**JMP Submission**: October 2025  
 
 ## Overview
 Modified CLASS code for a unified dark sector:  
