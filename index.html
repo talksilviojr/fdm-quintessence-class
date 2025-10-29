@@ -1,138 +1,209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FDM + Quintessence in CLASS</title>
-  <meta name="description" content="Modified CLASS code for Fuzzy Dark Matter + Quintessence. Resolves S8 tension (S8 ≈ 0.79). Open source, reproducible.">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FDM + Quintessence — CLASS (Silvio A. Corrêa Júnior)</title>
+
+  <!-- SEO -->
+  <meta name="description" content="Extensão do CLASS para Fuzzy Dark Matter (FDM) e Axion-like Quintessence — código aberto, instruções de compilação, resultados e demonstrações interativas." />
+  <meta name="author" content="Silvio Antônio Corrêa Júnior" />
+  <meta property="og:title" content="FDM + Quintessence — CLASS" />
+  <meta property="og:description" content="Extensão do CLASS para Fuzzy Dark Matter e Quintessence. Código aberto, resultados e notebooks de teste." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://talksilviojr.github.io/fdm-quintessence-class/" />
+
+  <!-- Icons (optional) -->
+  <link rel="icon" href="/favicon.ico" />
+
+  <!-- Plotly for interactive plots (CDN) and MathJax for equations -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
-    :root { --primary: #1a5fb4; --secondary: #155396; --light: #f8f9fa; --text: #333; }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: var(--light); color: var(--text); line-height: 1.7; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 3rem 0; text-align: center; }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .subtitle { font-size: 1.2rem; opacity: 0.9; }
-    nav { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
-    .nav-links { display: flex; list-style: none; justify-content: center; }
-    .nav-links a { padding: 15px 25px; color: var(--text); text-decoration: none; font-weight: 500; }
-    .nav-links a:hover, .nav-links a.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
-    main { padding: 3rem 0; }
-    .section { margin-bottom: 3rem; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    h2 { color: var(--primary); margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-    pre { background: #2d2d2d; color: #f8f8f2; padding: 1.2rem; border-radius: 8px; overflow-x: auto; font-size: 0.95rem; }
-    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-    th { background: var(--primary); color: white; }
-    .highlight { background: #fff3cd; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
-    .btn { display: inline-block; padding: 12px 28px; background: var(--primary); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 5px; }
-    .btn:hover { background: var(--secondary); }
-    footer { text-align: center; padding: 2rem; background: #2c3e50; color: white; margin-top: 3rem; }
-    img { max-width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    @media (max-width: 768px) { .nav-links { flex-direction: column; } }
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#7dd3fc; --muted:#9ca3af; --glass:rgba(255,255,255,0.03);
+      --maxw:1100px; --radius:14px;
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:linear-gradient(180deg,#071022 0%, #081227 60%); color:#e6eef8; -webkit-font-smoothing:antialiased;}
+    .container{max-width:var(--maxw); margin:36px auto; padding:20px;}
+
+    header{display:flex;align-items:center;gap:18px}
+    .logo{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#06283a}
+    h1{margin:0;font-size:1.6rem}
+    .subtitle{color:var(--muted);margin-top:6px}
+
+    .hero{display:grid;grid-template-columns:1fr 420px;gap:22px;margin-top:18px}
+    .card{background:var(--card); padding:18px;border-radius:var(--radius);box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+
+    .stats{display:flex;gap:12px;margin-top:12px}
+    .stat{background:var(--glass);padding:10px;border-radius:10px;text-align:center;flex:1}
+    .stat strong{display:block;font-size:1.1rem}
+
+    nav{margin-top:18px;display:flex;gap:10px;align-items:center}
+    a.btn{background:transparent;border:1px solid rgba(125,211,252,0.12);padding:8px 12px;border-radius:10px;color:var(--accent);text-decoration:none}
+
+    main section{margin-top:20px}
+    .two-col{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    pre{background:#081424;padding:12px;border-radius:10px;overflow:auto}
+
+    .plot{height:320px}
+    footer{margin-top:28px;color:var(--muted);font-size:0.9rem;text-align:center}
+
+    @media (max-width:980px){.hero{grid-template-columns:1fr} .two-col{grid-template-columns:1fr} .plot{height:260px}}
   </style>
 </head>
 <body>
-
-<header>
   <div class="container">
-    <h1>FDM + Quintessence in CLASS</h1>
-    <p class="subtitle">Modified CLASS code for a unified dark sector model</p>
-    <p><strong>S<sub>8</sub> ≈ <span class="highlight">0.792</span></strong> | <strong>w<sub>0</sub> ≈ <span class="highlight">-0.918</span></strong></p>
-  </div>
-</header>
+    <header>
+      <div class="logo">FQ
+      </div>
+      <div>
+        <h1>FDM + Quintessence — Extensão CLASS</h1>
+        <div class="subtitle">Implementação de Fuzzy Dark Matter e Axion-like Quintessence no solver CLASS — Silvio A. Corrêa Júnior</div>
+      </div>
+    </header>
 
-<nav>
-  <div class="container">
-    <ul class="nav-links">
-      <li><a href="#overview" class="active">Overview</a></li>
-      <li><a href="#results">Results</a></li>
-      <li><a href="#install">Install</a></li>
-      <li><a href="#run">Run</a></li>
-      <li><a href="#publications">Publications</a></li>
-    </ul>
-  </div>
-</nav>
+    <div class="hero">
+      <div class="card">
+        <p><strong>Resumo:</strong> Esta extensão adiciona ao CLASS um componente de matéria escura ultraleve (FDM) e um campo de quintessência com potencial axion-like \(V(\phi)=M^4[1+\cos(\phi/f)]\). O código resolve o background e as perturbações lineares, produzindo H(z), w_\phi(z) e P(k).</p>
 
-<main class="container">
+        <div class="stats" role="list">
+          <div class="stat" role="listitem"><small>S₈ (exemplo)</small><strong>0.792</strong></div>
+          <div class="stat" role="listitem"><small>w₀ (exemplo)</small><strong>-0.918</strong></div>
+          <div class="stat" role="listitem"><small>Status</small><strong>JCAP submission</strong></div>
+        </div>
 
-  <section id="overview" class="section">
-    <h2>Overview</h2>
-    <p>This is a <strong>modified version of the CLASS code</strong> (Cosmic Linear Anisotropy Solving System) that implements a <strong>unified dark sector</strong> combining:</p>
-    <ul>
-      <li><strong>Fuzzy Dark Matter (FDM)</strong>: ultra-light scalar field Ψ with <code>m_Ψ = 10⁻²² eV</code></li>
-      <li><strong>Axion-like Quintessence</strong>: potential <code>V(φ) = M⁴ [1 + cos(φ/f)]</code></li>
-    </ul>
-    <p>Fully integrated in background and linear perturbation equations. Reproduces ΛCDM on large scales, suppresses small-scale power via quantum pressure.</p>
-  </section>
+        <nav>
+          <a class="btn" href="https://github.com/talksilviojr/fdm-quintessence-class" target="_blank" rel="noopener">Código no GitHub</a>
+          <a class="btn" href="#installation">Instalação</a>
+          <a class="btn" href="#demos">Demonstrações</a>
+        </nav>
 
-  <section id="results" class="section">
-    <h2>Key Results</h2>
-    <table>
-      <tr><th>Parameter</th><th>ΛCDM</th><th>FDM + Quintessence</th></tr>
-      <tr><td>S<sub>8</sub></td><td>0.832</td><td><span class="highlight">0.792</span></td></tr>
-      <tr><td>w<sub>0</sub></td><td>-1.000</td><td><span class="highlight">-0.918</span></td></tr>
-    </table>
-    <img src="s8_comparison.png" alt="S8 comparison" width="600">
-    <p><em>Figure: S<sub>8</sub> suppression due to FDM quantum pressure.</em></p>
-  </section>
-
-  <section id="install" class="section">
-    <h2>Installation</h2>
-    <pre>
-# Clone CLASS
-git clone https://github.com/lesgourgues/class_public.git class_fdmq
-cd class_fdmq
-
-# Clone modifications
-git clone https://github.com/talksilviojr/fdm-quintessence-class.git modifications
-
-# Apply patch
-patch -p1 < modifications/class_fdm_quintessence.patch
-
-# Compile
+        <section id="installation" style="margin-top:14px">
+          <h3>Instalação rápida</h3>
+          <pre><code>git clone https://github.com/talksilviojr/fdm-quintessence-class.git
+cd class
+# aplicar patch fornecido
+patch -p1 &lt; ../class_fdm_quintessence.patch
 make
-</pre>
-  </section>
+# rodar com arquivo .ini de exemplo
+./class/CLASS params.ini
+</code></pre>
+          <p style="color:var(--muted)"><strong>Nota:</strong> Veja o repositório para instruções completas e exemplos de arquivos <code>.ini</code>.</p>
+        </section>
+      </div>
 
-  <section id="run" class="section">
-    <h2>Run Benchmark</h2>
-    <pre>
-./class explanatory.ini
-</pre>
-    <p>Output: <code>S<sub>8</sub> = 0.792</code>, <code>w<sub>0</sub> = -0.918</code></p>
-  </section>
+      <aside class="card" aria-label="Links e recursos">
+        <h4>Recursos rápidos</h4>
+        <ul>
+          <li><a href="https://github.com/talksilviojr/fdm-quintessence-class" target="_blank">Repositório GitHub</a></li>
+          <li><a href="#demos">Demonstrações interativas</a></li>
+          <li><a href="#paper">Artigo / Preprint</a></li>
+          <li><a href="mailto:contato@exemplo.com">Contato</a></li>
+        </ul>
 
-  <section id="publications" class="section">
-    <h2>Publications</h2>
-    <ul>
-      <li>Submitted to <em>Journal of Mathematical Physics (AIP)</em> – ID: <strong>JMP25-AR-02036</strong></li>
-      <li>Zenodo (in review): <a href="https://zenodo.org/records/XXXXXXX">DOI pending</a></li>
-    </ul>
-    <div style="text-align: center; margin: 20px 0;">
-      <a href="https://github.com/talksilviojr/fdm-quintessence-class" class="btn">GitHub Repository</a>
-      <a href="https://silvioantoniocorreajunior.com.br" class="btn">Official Site</a>
+        <h4 style="margin-top:12px">Destaques</h4>
+        <p class="subtitle">Modular — Reproduzível — Voltado a comparação com dados</p>
+      </aside>
     </div>
-  </section>
 
-</main>
+    <main>
+      <section id="demos" class="card">
+        <h3>Demonstrações interativas</h3>
+        <p>Use os controles abaixo para carregar conjuntos de parâmetros simulados e visualizar H(z), w<sub>\phi</sub>(z) e P(k). (Dados simulados para demonstração — substitua pelos outputs reais do CLASS ao integrar com notebooks).</p>
 
-<footer>
-  <p><strong>FDM + Quintessence in CLASS</strong> © 2025 Silvio A. Corrêa Junior</p>
-  <p>Independent Researcher | Santos, SP, Brazil</p>
-</footer>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+          <label for="paramSet">Conjunto de parâmetros:</label>
+          <select id="paramSet" aria-label="Selecione conjunto de parâmetros">
+            <option value="set1">m=1e-22 eV, f=1.0</option>
+            <option value="set2">m=5e-22 eV, f=1.0</option>
+            <option value="set3">m=1e-21 eV, f=2.0</option>
+          </select>
+          <button id="loadBtn" class="btn">Carregar</button>
+        </div>
 
-<script>
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      const target = document.querySelector(a.getAttribute('href'));
-      window.scrollTo({ top: target.offsetTop - 100, behavior: 'smooth' });
-      document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-      a.classList.add('active');
+        <div class="two-col">
+          <div>
+            <h4>H(z)</h4>
+            <div id="plot_H" class="plot" role="img" aria-label="Gráfico H de z"></div>
+
+            <h4 style="margin-top:14px">w<sub>\phi</sub>(z)</h4>
+            <div id="plot_w" class="plot" role="img" aria-label="Gráfico w phi"></div>
+          </div>
+
+          <div>
+            <h4>P(k)</h4>
+            <div id="plot_Pk" class="plot" role="img" aria-label="Gráfico P k"></div>
+
+            <h4 style="margin-top:12px">Exemplos de arquivo .ini</h4>
+            <pre><code># params_example.ini
+# Ajuste Omega_fdm, m_fdm, phi_init, f_phi
+Omega_b = 0.049
+Omega_cdm = 0.26
+Omega_fdm = 0.10
+m_fdm = 1e-22
+phi_init = 1.0
+f_phi = 1.0
+</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="paper" class="card" style="margin-top:18px">
+        <h3>Artigo e documentação</h3>
+        <p>Versão em submissão (JCAP). Se houver preprint no arXiv, disponibilize o link para maior transparência. Incluir PDF e exemplos de scripts aumenta a aceitação e facilita revisão por pares.</p>
+        <p><em>Recomendação:</em> adicione um link para o preprint e para um notebook colab com exemplos reproduzíveis.</p>
+      </section>
+
+      <section class="card" style="margin-top:18px">
+        <h3>Sugestões para o repositório</h3>
+        <ul>
+          <li>Adicionar uma seção "Validation" com plots comparativos: CLASS padrão vs modificado.</li>
+          <li>Incluir notebooks Jupyter/Colab que rodem os scripts de teste e salvem CSVs.</li>
+          <li>Documentar quais arquivos do CLASS foram alterados e por quê (patch summary).</li>
+          <li>Adicionar sample outputs (H(z), w_phi(z), P(k)) com parâmetros usados para gerar cada figura.</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <footer>
+      Página gerada para apresentação do projeto — <strong>Silvio Antônio Corrêa Júnior</strong> • <a href="https://github.com/talksilviojr/fdm-quintessence-class" target="_blank">Código</a>
+    </footer>
+  </div>
+
+  <script>
+    // Funções que simulam dados para demonstração. Substituir pelas chamadas reais ao CLASS outputs.
+    function simData(setName){
+      const z = Array.from({length:200},(_,i)=> i*(10/199));
+      const k = Array.from({length:100},(_,i)=> Math.pow(10, -3 + i*(4/99)));
+      let H = [], w = [], Pk = [];
+      let mult=1.0, shift=0;
+      if(setName==='set1'){mult=1.0; shift=0}
+      if(setName==='set2'){mult=0.95; shift=0.02}
+      if(setName==='set3'){mult=1.05; shift=-0.03}
+      for(let zi of z){ H.push(70*Math.sqrt(0.3*Math.pow(1+zi,3) + 0.7*(1+shift))*mult) ; w.push(-1 + 0.12*Math.tanh(0.25*zi)*(shift*10)); }
+      for(let ki of k){ Pk.push(1e4*Math.pow(ki,-3)*(1 - 0.08*(mult-1) + 0.04*shift)); }
+      return {z,H,w,k,Pk};
+    }
+
+    function drawPlots(setName){
+      const data = simData(setName);
+      Plotly.newPlot('plot_H', [{x:data.z, y:data.H, mode:'lines', name:'H(z)'}], {margin:{t:20}, xaxis:{title:'z'}, yaxis:{title:'H(z) [km/s/Mpc]'}} );
+      Plotly.newPlot('plot_w', [{x:data.z, y:data.w, mode:'lines', name:'w_phi(z)'}], {margin:{t:20}, xaxis:{title:'z'}, yaxis:{title:'w_phi(z)'}} );
+      Plotly.newPlot('plot_Pk', [{x:data.k, y:data.Pk, mode:'lines', name:'P(k)'}], {margin:{t:20}, xaxis:{title:'k [h/Mpc]', type:'log'}, yaxis:{title:'P(k) [(Mpc/h)^3]', type:'log'}} );
+    }
+
+    document.getElementById('loadBtn').addEventListener('click', ()=>{
+      const v = document.getElementById('paramSet').value; drawPlots(v);
     });
-  });
-</script>
 
+    // Carrega por padrão
+    drawPlots('set1');
+  </script>
 </body>
 </html>
+
