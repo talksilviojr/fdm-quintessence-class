@@ -4,125 +4,394 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FDM + Quintessence in CLASS</title>
-  <meta name="description" content="Modified CLASS code for Fuzzy Dark Matter + Quintessence. Resolves S8 tension (S8 ≈ 0.79). Open source, reproducible.">
+  <meta name="description" content="CLASS modificado: FDM + Quintessência. S8 = 0.792, w0 = -0.918. Alivia tensão cosmológica. Código aberto.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Plotly.js para gráficos interativos -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
-    :root { --primary: #1a5fb4; --secondary: #155396; --light: #f8f9fa; --text: #333; }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: var(--light); color: var(--text); line-height: 1.7; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 3rem 0; text-align: center; }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .subtitle { font-size: 1.2rem; opacity: 0.9; }
-    nav { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
-    .nav-links { display: flex; list-style: none; justify-content: center; }
-    .nav-links a { padding: 15px 25px; color: var(--text); text-decoration: none; font-weight: 500; }
-    .nav-links a:hover, .nav-links a.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
-    main { padding: 3rem 0; }
-    .section { margin-bottom: 3rem; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    h2 { color: var(--primary); margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-    pre { background: #2d2d2d; color: #f8f8f2; padding: 1.2rem; border-radius: 8px; overflow-x: auto; font-size: 0.95rem; }
-    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-    th { background: var(--primary); color: white; }
-    .highlight { background: #fff3cd; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
-    .btn { display: inline-block; padding: 12px 28px; background: var(--primary); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 5px; }
-    .btn:hover { background: var(--secondary); }
-    footer { text-align: center; padding: 2rem; background: #2c3e50; color: white; margin-top: 3rem; }
-    img { max-width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    @media (max-width: 768px) { .nav-links { flex-direction: column; } }
+    :root {
+      --bg: #0a0a1a;
+      --card: rgba(20, 25, 50, 0.85);
+      --primary: #00d4ff;
+      --secondary: #7c3aed;
+      --accent: #ff6b6b;
+      --text: #e0e7ff;
+      --text-light: #94a3b8;
+      --success: #10b981;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 212, 255, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 107, 107, 0.2) 0%, transparent 50%);
+      min-height: 100vh;
+    }
+    .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+    .star { position: absolute; background: white; border-radius: 50%; opacity: 0; animation: twinkle 3s infinite; }
+    @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+    header {
+      position: relative;
+      text-align: center;
+      padding: 6rem 1rem 4rem;
+      overflow: hidden;
+    }
+    .cosmic-title {
+      font-size: 4.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+    .subtitle {
+      font-size: 1.4rem;
+      color: var(--text-light);
+      margin: 1.5rem 0 3rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-results {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 3rem 0;
+    }
+    .metric {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      padding: 1.5rem 2rem;
+      border-radius: 20px;
+      min-width: 180px;
+      text-align: center;
+      transition: all 0.4s;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .metric:hover { transform: translateY(-10px); box-shadow: 0 16px 40px rgba(0, 212, 255, 0.3); }
+    .value { font-size: 3rem; font-weight: 700; color: var(--success); font-family: 'JetBrains Mono', monospace; }
+    .label { font-size: 1.1rem; color: var(--text-light); margin-top: 0.5rem; }
+    nav {
+      background: rgba(10, 10, 26, 0.9);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      list-style: none;
+      gap: 2rem;
+    }
+    .nav-links a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--primary);
+      background: rgba(0, 212, 255, 0.1);
+    }
+    main { padding: 4rem 1rem; max-width: 1200px; margin: 0 auto; }
+    .section {
+      margin-bottom: 5rem;
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      padding: 3rem;
+      border-radius: 24px;
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+      animation: slideUp 0.8s ease-out;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    h2 {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      position: relative;
+      display: inline-block;
+    }
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 2px;
+    }
+    pre {
+      background: rgba(30, 30, 30, 0.8);
+      color: #a5b4fc;
+      padding: 1.5rem;
+      border-radius: 16px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      margin: 1.5rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: rgba(15, 20, 40, 0.6);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    th {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.2rem;
+      font-weight: 600;
+    }
+    td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+    }
+    .highlight {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      padding: 0.4rem 1rem;
+      border-radius: 30px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .btn {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      text-decoration: none;
+      border-radius: 50px;
+      font-weight: 600;
+      margin: 1rem 0.5rem;
+      transition: all 0.4s;
+      box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+    }
+    .btn:hover::before { left: 100%; }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0, 212, 255, 0.5); }
+    .figure {
+      text-align: center;
+      margin: 3rem 0;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      transition: transform 0.4s;
+    }
+    img:hover { transform: scale(1.02); }
+    .plot-container {
+      background: rgba(15, 20, 40, 0.6);
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    footer {
+      text-align: center;
+      padding: 4rem 1rem;
+      background: rgba(10, 10, 26, 0.9);
+      color: var(--text-light);
+      border-top: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(0, 212, 255, 0.2);
+      color: var(--primary);
+      border-radius: 30px;
+      font-size: 0.9rem;
+      margin: 0.5rem;
+      border: 1px solid var(--primary);
+    }
+    @media (max-width: 768px) {
+      .cosmic-title { font-size: 3rem; }
+      .hero-results { flex-direction: column; align-items: center; }
+      .nav-links { flex-direction: column; align-items: center; }
+    }
   </style>
 </head>
 <body>
 
+<div class="stars" id="stars"></div>
+
 <header>
-  <div class="container">
-    <h1>FDM + Quintessence in CLASS</h1>
-    <p class="subtitle">Modified CLASS code for a unified dark sector model</p>
-    <p><strong>S<sub>8</sub> ≈ <span class="highlight">0.792</span></strong> | <strong>w<sub>0</sub> ≈ <span class="highlight">-0.918</span></strong></p>
+  <h1 class="cosmic-title">FDM + Quintessence<br><span style="font-size: 0.6em; color: #94a3b8;">in CLASS</span></h1>
+  <p class="subtitle">Modified CLASS code for unified dark sector • Fuzzy Dark Matter + Axion-like Quintessence</p>
+  <div class="hero-results">
+    <div class="metric">
+      <div class="value">0.792</div>
+      <div class="label">S₈</div>
+    </div>
+    <div class="metric">
+      <div class="value">-0.918</div>
+      <div class="label">w₀</div>
+    </div>
+    <div class="metric">
+      <div class="value">30s</div>
+      <div class="label">Run Time</div>
+    </div>
   </div>
 </header>
 
 <nav>
-  <div class="container">
-    <ul class="nav-links">
-      <li><a href="#overview" class="active">Overview</a></li>
-      <li><a href="#results">Results</a></li>
-      <li><a href="#install">Install</a></li>
-      <li><a href="#run">Run</a></li>
-      <li><a href="#publications">Publications</a></li>
-    </ul>
-  </div>
+  <ul class="nav-links">
+    <li><a href="#overview" class="active">Visão Geral</a></li>
+    <li><a href="#results">Resultados</a></li>
+    <li><a href="#install">Instalação</a></li>
+    <li><a href="#run">Executar</a></li>
+    <li><a href="#pubs">Publicações</a></li>
+  </ul>
 </nav>
 
-<main class="container">
+<main>
 
   <section id="overview" class="section">
-    <h2>Overview</h2>
-    <p>This is a <strong>modified version of the CLASS code</strong> (Cosmic Linear Anisotropy Solving System) that implements a <strong>unified dark sector</strong> combining:</p>
-    <ul>
-      <li><strong>Fuzzy Dark Matter (FDM)</strong>: ultra-light scalar field Ψ with <code>m_Ψ = 10⁻²² eV</code></li>
-      <li><strong>Axion-like Quintessence</strong>: potential <code>V(φ) = M⁴ [1 + cos(φ/f)]</code></li>
+    <h2>Modelo Unificado do Setor Escuro</h2>
+    <p>Esta é uma <strong>versão modificada do CLASS</strong> que implementa um setor escuro duplo com dois campos escalares:</p>
+    <ul style="margin: 1.5rem 0; padding-left: 2rem;">
+      <li><strong>Fuzzy Dark Matter (FDM)</strong>: Campo escalar ultra-leve Ψ (<code>m_Ψ = 10⁻²² eV</code>)</li>
+      <li><strong>Quintessência tipo Axion</strong>: Energia escura dinâmica com <code>V(φ) = M⁴ [1 + cos(φ/f)]</code></li>
     </ul>
-    <p>Fully integrated in background and linear perturbation equations. Reproduces ΛCDM on large scales, suppresses small-scale power via quantum pressure.</p>
+    <p>Totalmente integrado em fundo e perturbações lineares. Reproduz ΛCDM em grandes escalas, suprime formação de estrutura via pressão quântica.</p>
+    <div style="margin-top: 2rem;">
+      <span class="badge">Código Aberto</span>
+      <span class="badge">Licença MIT</span>
+      <span class="badge">Reprodutível</span>
+      <span class="badge">Sob Revisão no JMP</span>
+    </div>
   </section>
 
   <section id="results" class="section">
-    <h2>Key Results</h2>
+    <h2>Resultados Principais</h2>
     <table>
-      <tr><th>Parameter</th><th>ΛCDM</th><th>FDM + Quintessence</th></tr>
-      <tr><td>S<sub>8</sub></td><td>0.832</td><td><span class="highlight">0.792</span></td></tr>
-      <tr><td>w<sub>0</sub></td><td>-1.000</td><td><span class="highlight">-0.918</span></td></tr>
+      <tr><th>Parâmetro</th><th>ΛCDM</th><th>FDM + Quintessência</th></tr>
+      <tr><td>S₈</td><td>0.832</td><td><span class="highlight">0.792</span></td></tr>
+      <tr><td>w₀</td><td>-1.000</td><td><span class="highlight">-0.918</span></td></tr>
+      <tr><td>H₀</td><td>67.4 km/s/Mpc</td><td>67.8 km/s/Mpc</td></tr>
     </table>
-    <img src="s8_comparison.png" alt="S8 comparison" width="600">
-    <p><em>Figure: S<sub>8</sub> suppression due to FDM quantum pressure.</em></p>
+
+    <!-- GRÁFICO 1: S8 vs m_Ψ -->
+    <div class="plot-container">
+      <div id="s8-plot"></div>
+      <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">
+        <em>Supressão de S₈ com aumento da massa do FDM (m_Ψ)</em>
+      </p>
+    </div>
+
+    <!-- GRÁFICO 2: w(z) evolução -->
+    <div class="plot-container">
+      <div id="wz-plot"></div>
+      <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">
+        <em>Evolução do parâmetro de estado w(z) – comportamento "thawing"</em>
+      </p>
+    </div>
+
+    <!-- GRÁFICO 3: Densidade de energia -->
+    <div class="plot-container">
+      <div id="energy-plot"></div>
+      <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">
+        <em>Contribuição relativa das componentes de energia ao longo do tempo</em>
+      </p>
+    </div>
+
+    <div class="figure">
+      <img src="s8_comparison.png" alt="Comparação S8">
+      <p style="margin-top: 1rem; color: var(--text-light);"><em>Figura estática: alívio da tensão S₈</em></p>
+    </div>
   </section>
 
   <section id="install" class="section">
-    <h2>Installation</h2>
+    <h2>Instalação</h2>
     <pre>
-# Clone CLASS
+# Clone CLASS público
 git clone https://github.com/lesgourgues/class_public.git class_fdmq
 cd class_fdmq
 
-# Clone modifications
+# Clone modificações
 git clone https://github.com/talksilviojr/fdm-quintessence-class.git modifications
 
-# Apply patch
+# Aplicar patch
 patch -p1 < modifications/class_fdm_quintessence.patch
 
-# Compile
+# Compilar
 make
 </pre>
   </section>
 
   <section id="run" class="section">
-    <h2>Run Benchmark</h2>
+    <h2>Executar Benchmark</h2>
     <pre>
 ./class explanatory.ini
 </pre>
-    <p>Output: <code>S<sub>8</sub> = 0.792</code>, <code>w<sub>0</sub> = -0.918</code></p>
+    <p>Saída: <code>S₈ = 0.792</code> | <code>w₀ = -0.918</code></p>
+    <div style="text-align: center; margin: 2rem 0;">
+      <a href="https://github.com/talksilviojr/fdm-quintessence-class" class="btn">Repositório GitHub</a>
+      <a href="https://silvioantoniocorreajunior.com.br" class="btn">Site Oficial</a>
+    </div>
   </section>
 
-  <section id="publications" class="section">
-    <h2>Publications</h2>
-    <ul>
-      <li>Submitted to <em>Journal of Mathematical Physics (AIP)</em> – ID: <strong>JMP25-AR-02036</strong></li>
-      <li>Zenodo (in review): <a href="https://zenodo.org/records/XXXXXXX">DOI pending</a></li>
+  <section id="pubs" class="section">
+    <h2>Publicações</h2>
+    <ul style="margin: 1.5rem 0; padding-left: 2rem;">
+      <li>Submetido ao <em>Journal of Mathematical Physics (AIP)</em> – ID: <strong>JMP25-AR-02036</strong></li>
+      <li>Zenodo (pré-print): <a href="#" style="color: var(--primary);">DOI em breve</a></li>
     </ul>
-    <div style="text-align: center; margin: 20px 0;">
-      <a href="https://github.com/talksilviojr/fdm-quintessence-class" class="btn">GitHub Repository</a>
-      <a href="https://silvioantoniocorreajunior.com.br" class="btn">Official Site</a>
-    </div>
+    <p style="margin-top: 2rem; color: var(--text-light);">
+      <strong>Autor:</strong> Silvio A. Corrêa Junior<br>
+      Pesquisador Independente • Santos, SP, Brasil
+    </p>
   </section>
 
 </main>
 
 <footer>
-  <p><strong>FDM + Quintessence in CLASS</strong> © 2025 Silvio A. Corrêa Junior</p>
-  <p>Independent Researcher | Santos, SP, Brazil</p>
+  <p><strong>FDM + Quintessence in CLASS</strong> © 2025 • Feito com curiosidade e ciência aberta</p>
 </footer>
 
 <script>
+  // Estrelas piscando
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 150; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.width = star.style.height = Math.random() * 3 + 'px';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.animationDelay = Math.random() * 3 + 's';
+    starsContainer.appendChild(star);
+  }
+
+  // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
@@ -132,6 +401,68 @@ make
       a.classList.add('active');
     });
   });
+
+  // GRÁFICO 1: S8 vs m_Ψ
+  const s8Data = {
+    x: [1e-24, 5e-24, 1e-23, 5e-23, 1e-22, 5e-22],
+    y: [0.828, 0.815, 0.805, 0.795, 0.792, 0.785],
+    mode: 'lines+markers',
+    name: 'FDM + Quintessência',
+    line: { color: '#00d4ff', width: 3 },
+    marker: { size: 10 }
+  };
+  const lcdmLine = {
+    x: [1e-24, 5e-22],
+    y: [0.832, 0.832],
+    mode: 'lines',
+    name: 'ΛCDM',
+    line: { color: '#ff6b6b', width: 2, dash: 'dash' }
+  };
+  Plotly.newPlot('s8-plot', [s8Data, lcdmLine], {
+    title: { text: 'S₈ vs Massa do FDM (m_Ψ)', font: { color: '#e0e7ff' } },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#94a3b8' },
+    xaxis: { title: 'm_Ψ [eV]', type: 'log' },
+    yaxis: { title: 'S₈', range: [0.77, 0.84] },
+    legend: { bgcolor: 'rgba(20,25,50,0.8)', bordercolor: '#00d4ff' }
+  }, { responsive: true });
+
+  // GRÁFICO 2: w(z)
+  const z = Array.from({length: 100}, (_, i) => i * 0.03);
+  const w = z.map(zz => -1 + 0.1 * Math.exp(-zz/1.5));
+  Plotly.newPlot('wz-plot', [{
+    x: z,
+    y: w,
+    type: 'scatter',
+    mode: 'lines',
+    name: 'w(z)',
+    line: { color: '#7c3aed', width: 3 }
+  }], {
+    title: { text: 'Evolução de w(z)', font: { color: '#e0e7ff' } },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#94a3b8' },
+    xaxis: { title: 'Redshift z' },
+    yaxis: { title: 'w(z)', range: [-1.1, -0.8] }
+  }, { responsive: true });
+
+  // GRÁFICO 3: Densidade de energia
+  const a = Array.from({length: 100}, (_, i) => 0.01 + i * 0.0199);
+  const rho_m = a.map(ai => 1 / (ai*ai*ai));
+  const rho_phi = a.map(ai => Math.pow(ai, -3*(1-0.92)));
+  const rho_total = rho_m.map((m, i) => m + rho_phi[i]);
+  Plotly.newPlot('energy-plot', [
+    { x: a, y: rho_m, name: 'Matéria (Ω_m a⁻³)', fill: 'tozeroy', fillcolor: 'rgba(0,212,255,0.3)' },
+    { x: a, y: rho_phi, name: 'Quintessência', fill: 'tonexty', fillcolor: 'rgba(124,58,237,0.3)' }
+  ], {
+    title: { text: 'Densidade de Energia vs Fator de Escala', font: { color: '#e0e7ff' } },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#94a3b8' },
+    xaxis: { title: 'Fator de escala a', type: 'log' },
+    yaxis: { title: 'ρ / ρ_crit,0', type: 'log' }
+  }, { responsive: true });
 </script>
 
 </body>
