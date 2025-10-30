@@ -6,7 +6,6 @@
   <title>FDM + Quintessence in CLASS</title>
   <meta name="description" content="CLASS modificado: FDM + Quintessência. S8 = 0.792, w0 = -0.918. Alivia tensão cosmológica. Código aberto.">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <!-- Plotly.js para gráficos interativos -->
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
     :root {
@@ -101,7 +100,6 @@
       padding: 0.5rem 1rem;
       border-radius: 30px;
       transition: all 0.3s;
-      position: relative;
     }
     .nav-links a:hover, .nav-links a.active {
       color: var(--primary);
@@ -116,9 +114,7 @@
       border-radius: 24px;
       border: 1px solid rgba(0, 212, 255, 0.15);
       box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
-      animation: slideUp 0.8s ease-out;
     }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     h2 {
       font-size: 2.2rem;
       color: var(--primary);
@@ -146,34 +142,6 @@
       border: 1px solid rgba(0, 212, 255, 0.2);
       margin: 1.5rem 0;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 2rem 0;
-      background: rgba(15, 20, 40, 0.6);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    th {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 1.2rem;
-      font-weight: 600;
-    }
-    td {
-      padding: 1rem;
-      text-align: center;
-      border-bottom: 1px solid rgba(0, 212, 255, 0.1);
-    }
-    .highlight {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--success);
-      padding: 0.4rem 1rem;
-      border-radius: 30px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-    }
     .btn {
       display: inline-block;
       padding: 1rem 2.5rem;
@@ -185,43 +153,14 @@
       margin: 1rem 0.5rem;
       transition: all 0.4s;
       box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
-      position: relative;
-      overflow: hidden;
     }
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: 0.5s;
-    }
-    .btn:hover::before { left: 100%; }
     .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(0, 212, 255, 0.5); }
-    .figure {
-      text-align: center;
-      margin: 3rem 0;
-    }
-    img {
-      max-width: 100%;
-      border-radius: 20px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-      transition: transform 0.4s;
-    }
-    img:hover { transform: scale(1.02); }
     .plot-container {
       background: rgba(15, 20, 40, 0.6);
       border-radius: 20px;
       padding: 1.5rem;
       margin: 2rem 0;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    footer {
-      text-align: center;
-      padding: 4rem 1rem;
-      background: rgba(10, 10, 26, 0.9);
-      color: var(--text-light);
-      border-top: 1px solid rgba(0, 212, 255, 0.2);
     }
     .badge {
       display: inline-block;
@@ -233,10 +172,12 @@
       margin: 0.5rem;
       border: 1px solid var(--primary);
     }
-    @media (max-width: 768px) {
-      .cosmic-title { font-size: 3rem; }
-      .hero-results { flex-direction: column; align-items: center; }
-      .nav-links { flex-direction: column; align-items: center; }
+    footer {
+      text-align: center;
+      padding: 4rem 1rem;
+      background: rgba(10, 10, 26, 0.9);
+      color: var(--text-light);
+      border-top: 1px solid rgba(0, 212, 255, 0.2);
     }
   </style>
 </head>
@@ -277,109 +218,64 @@
 
   <section id="overview" class="section">
     <h2>Modelo Unificado do Setor Escuro</h2>
-    <p>Esta é uma <strong>versão modificada do CLASS</strong> que implementa um setor escuro duplo com dois campos escalares:</p>
+    <p>Versão modificada do <strong>CLASS</strong> com dois campos escalares:</p>
     <ul style="margin: 1.5rem 0; padding-left: 2rem;">
-      <li><strong>Fuzzy Dark Matter (FDM)</strong>: Campo escalar ultra-leve Ψ (<code>m_Ψ = 10⁻²² eV</code>)</li>
-      <li><strong>Quintessência tipo Axion</strong>: Energia escura dinâmica com <code>V(φ) = M⁴ [1 + cos(φ/f)]</code></li>
+      <li><strong>FDM</strong>: Ψ ultra-leve (<code>m_Ψ = 10⁻²² eV</code>)</li>
+      <li><strong>Quintessência</strong>: φ com potencial axion-like</li>
     </ul>
-    <p>Totalmente integrado em fundo e perturbações lineares. Reproduz ΛCDM em grandes escalas, suprime formação de estrutura via pressão quântica.</p>
+    <p>Reproduz ΛCDM em grandes escalas, suprime estrutura via pressão quântica.</p>
     <div style="margin-top: 2rem;">
       <span class="badge">Código Aberto</span>
-      <span class="badge">Licença MIT</span>
+      <span class="badge">MIT License</span>
       <span class="badge">Reprodutível</span>
-      <span class="badge">Sob Revisão no JMP</span>
+      <span class="badge">JMP25-AR-02036</span>
     </div>
   </section>
 
   <section id="results" class="section">
-    <h2>Resultados Principais</h2>
-    <table>
-      <tr><th>Parâmetro</th><th>ΛCDM</th><th>FDM + Quintessência</th></tr>
-      <tr><td>S₈</td><td>0.832</td><td><span class="highlight">0.792</span></td></tr>
-      <tr><td>w₀</td><td>-1.000</td><td><span class="highlight">-0.918</span></td></tr>
-      <tr><td>H₀</td><td>67.4 km/s/Mpc</td><td>67.8 km/s/Mpc</td></tr>
-    </table>
-
-    <!-- GRÁFICO 1: S8 vs m_Ψ -->
+    <h2>Resultados</h2>
     <div class="plot-container">
       <div id="s8-plot"></div>
       <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">
-        <em>Supressão de S₈ com aumento da massa do FDM (m_Ψ)</em>
+        <em>S₈ vs m_Ψ – supressão clara</em>
       </p>
-    </div>
-
-    <!-- GRÁFICO 2: w(z) evolução -->
-    <div class="plot-container">
-      <div id="wz-plot"></div>
-      <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">
-        <em>Evolução do parâmetro de estado w(z) – comportamento "thawing"</em>
-      </p>
-    </div>
-
-    <!-- GRÁFICO 3: Densidade de energia -->
-    <div class="plot-container">
-      <div id="energy-plot"></div>
-      <p style="text-align: center; color: var(--text-light); margin-top: 1rem;">
-        <em>Contribuição relativa das componentes de energia ao longo do tempo</em>
-      </p>
-    </div>
-
-    <div class="figure">
-      <img src="s8_comparison.png" alt="Comparação S8">
-      <p style="margin-top: 1rem; color: var(--text-light);"><em>Figura estática: alívio da tensão S₈</em></p>
     </div>
   </section>
 
   <section id="install" class="section">
     <h2>Instalação</h2>
     <pre>
-# Clone CLASS público
 git clone https://github.com/lesgourgues/class_public.git class_fdmq
 cd class_fdmq
-
-# Clone modificações
 git clone https://github.com/talksilviojr/fdm-quintessence-class.git modifications
-
-# Aplicar patch
 patch -p1 < modifications/class_fdm_quintessence.patch
-
-# Compilar
 make
 </pre>
   </section>
 
   <section id="run" class="section">
-    <h2>Executar Benchmark</h2>
+    <h2>Executar</h2>
     <pre>
 ./class explanatory.ini
 </pre>
     <p>Saída: <code>S₈ = 0.792</code> | <code>w₀ = -0.918</code></p>
-    <div style="text-align: center; margin: 2rem 0;">
-      <a href="https://github.com/talksilviojr/fdm-quintessence-class" class="btn">Repositório GitHub</a>
-      <a href="https://silvioantoniocorreajunior.com.br" class="btn">Site Oficial</a>
-    </div>
   </section>
 
   <section id="pubs" class="section">
     <h2>Publicações</h2>
     <ul style="margin: 1.5rem 0; padding-left: 2rem;">
-      <li>Submetido ao <em>Journal of Mathematical Physics (AIP)</em> – ID: <strong>JMP25-AR-02036</strong></li>
-      <li>Zenodo (pré-print): <a href="#" style="color: var(--primary);">DOI em breve</a></li>
+      <li>Submetido ao <em>Journal of Mathematical Physics</em> – <strong>JMP25-AR-02036</strong></li>
     </ul>
-    <p style="margin-top: 2rem; color: var(--text-light);">
-      <strong>Autor:</strong> Silvio A. Corrêa Junior<br>
-      Pesquisador Independente • Santos, SP, Brasil
-    </p>
   </section>
 
 </main>
 
 <footer>
-  <p><strong>FDM + Quintessence in CLASS</strong> © 2025 • Feito com curiosidade e ciência aberta</p>
+  <p><strong>FDM + Quintessence in CLASS</strong> © 2025</p>
 </footer>
 
 <script>
-  // Estrelas piscando
+  // Estrelas
   const starsContainer = document.getElementById('stars');
   for (let i = 0; i < 150; i++) {
     const star = document.createElement('div');
@@ -391,7 +287,20 @@ make
     starsContainer.appendChild(star);
   }
 
-  // Smooth scroll
+  // Gráfico S8
+  Plotly.newPlot('s8-plot', [
+    { x: [1e-24, 1e-22], y: [0.832, 0.832], name: 'ΛCDM', line: { color: '#ff6b6b', dash: 'dash' } },
+    { x: [1e-24, 1e-23, 1e-22], y: [0.828, 0.805, 0.792], name: 'FDM+Q', mode: 'lines+markers', line: { color: '#00d4ff' } }
+  ], {
+    title: 'S₈ vs m_Ψ',
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#94a3b8' },
+    xaxis: { title: 'm_Ψ [eV]', type: 'log' },
+    yaxis: { title: 'S₈', range: [0.77, 0.84] }
+  }, { responsive: true });
+
+  // Navegação
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
@@ -401,68 +310,6 @@ make
       a.classList.add('active');
     });
   });
-
-  // GRÁFICO 1: S8 vs m_Ψ
-  const s8Data = {
-    x: [1e-24, 5e-24, 1e-23, 5e-23, 1e-22, 5e-22],
-    y: [0.828, 0.815, 0.805, 0.795, 0.792, 0.785],
-    mode: 'lines+markers',
-    name: 'FDM + Quintessência',
-    line: { color: '#00d4ff', width: 3 },
-    marker: { size: 10 }
-  };
-  const lcdmLine = {
-    x: [1e-24, 5e-22],
-    y: [0.832, 0.832],
-    mode: 'lines',
-    name: 'ΛCDM',
-    line: { color: '#ff6b6b', width: 2, dash: 'dash' }
-  };
-  Plotly.newPlot('s8-plot', [s8Data, lcdmLine], {
-    title: { text: 'S₈ vs Massa do FDM (m_Ψ)', font: { color: '#e0e7ff' } },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { color: '#94a3b8' },
-    xaxis: { title: 'm_Ψ [eV]', type: 'log' },
-    yaxis: { title: 'S₈', range: [0.77, 0.84] },
-    legend: { bgcolor: 'rgba(20,25,50,0.8)', bordercolor: '#00d4ff' }
-  }, { responsive: true });
-
-  // GRÁFICO 2: w(z)
-  const z = Array.from({length: 100}, (_, i) => i * 0.03);
-  const w = z.map(zz => -1 + 0.1 * Math.exp(-zz/1.5));
-  Plotly.newPlot('wz-plot', [{
-    x: z,
-    y: w,
-    type: 'scatter',
-    mode: 'lines',
-    name: 'w(z)',
-    line: { color: '#7c3aed', width: 3 }
-  }], {
-    title: { text: 'Evolução de w(z)', font: { color: '#e0e7ff' } },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { color: '#94a3b8' },
-    xaxis: { title: 'Redshift z' },
-    yaxis: { title: 'w(z)', range: [-1.1, -0.8] }
-  }, { responsive: true });
-
-  // GRÁFICO 3: Densidade de energia
-  const a = Array.from({length: 100}, (_, i) => 0.01 + i * 0.0199);
-  const rho_m = a.map(ai => 1 / (ai*ai*ai));
-  const rho_phi = a.map(ai => Math.pow(ai, -3*(1-0.92)));
-  const rho_total = rho_m.map((m, i) => m + rho_phi[i]);
-  Plotly.newPlot('energy-plot', [
-    { x: a, y: rho_m, name: 'Matéria (Ω_m a⁻³)', fill: 'tozeroy', fillcolor: 'rgba(0,212,255,0.3)' },
-    { x: a, y: rho_phi, name: 'Quintessência', fill: 'tonexty', fillcolor: 'rgba(124,58,237,0.3)' }
-  ], {
-    title: { text: 'Densidade de Energia vs Fator de Escala', font: { color: '#e0e7ff' } },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { color: '#94a3b8' },
-    xaxis: { title: 'Fator de escala a', type: 'log' },
-    yaxis: { title: 'ρ / ρ_crit,0', type: 'log' }
-  }, { responsive: true });
 </script>
 
 </body>
