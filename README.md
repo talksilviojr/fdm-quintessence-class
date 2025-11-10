@@ -1,7 +1,13 @@
 # FDM + Quintessence in CLASS
 
-**Author**: Silvio A. Corrêa Junior  
-**Paper**: [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX) *(to be updated)*  
+@misc{zenodo_fdm_quint_2025,
+  author = {Corrêa Junior, Silvio A.},
+  title = {Dynamical Dark Sector: FDM + Quintessence},
+  doi = {10.5281/zenodo.17566560},
+  url = {https://zenodo.org/records/17566560},
+  year = {2025},
+  publisher = {Zenodo}
+}
 
 ---
 
