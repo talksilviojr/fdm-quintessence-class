@@ -2,7 +2,6 @@
 
 **Author**: Silvio A. Corrêa Junior  
 **Paper**: [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX) *(to be updated)*  
-**JCAP Submission**: October 2025  
 
 ---
 
