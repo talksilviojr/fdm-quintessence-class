@@ -1,74 +1,142 @@
+diff --git a/include/perturbations.h b/include/perturbations.h
+index 1a2b3c4..5d6e7f8 100644
+--- a/include/perturbations.h
++++ b/include/perturbations.h
+@@ -450,6 +450,18 @@ struct perturbations {
+   /** @name - FDM parameters */
+   int has_fdm;
+   double m_Psi;  // FDM mass in units of H0 (converted from eV in input.c)
++
++  /** @name - Quintessence parameters */
++  int has_quintessence;
++  double M_quint;  // Energy scale M^4 in units of H0^4
++  double f_quint;  // Decay constant f in units of M_pl (or H0^{-1})
++
++  /** @name - Perturbation indices for scalar fields */
++  int index_pt_delta_Psi;
++  int index_pt_theta_Psi;
++  int index_pt_delta_phi;
++  int index_pt_theta_phi;
++  int index_pt_phi;  // Background field value (for V''(phi))
+ };
+ 
+ /**
+diff --git a/source/input.c b/source/input.c
+index 8f9g1h2..3i4j5k6 100644
+--- a/source/input.c
++++ b/source/input.c
+@@ -2340,6 +2340,24 @@ int input_read_parameters(
+   class_read_double("m_Psi",ppt->m_Psi);
+   if (ppt->has_fdm == _TRUE_) {
+     ppt->m_Psi *= (1.0 / _EV_IN_J_) / (pba->H0 * pba->H0);  // eV → H0 units
++  }
++
++  /* Quintessence */
++  ppt->has_quintessence = _FALSE_;
++  class_read_flag("has_quintessence",ppt->has_quintessence);
++  if (ppt->has_quintessence == _TRUE_) {
++    class_read_double("M_quint",ppt->M_quint);
++    class_read_double("f_quint",ppt->f_quint);
++    // Optional: convert units if needed (M_quint in H0, f_quint in M_pl)
++    // ppt->M_quint *= pow(pba->H0, 4);  // if input in GeV^4
++    // ppt->f_quint *= pba->H0;           // if input in 1/H0
++  }
++
++  /* Initialize indices to -1 */
++  ppt->index_pt_delta_Psi = -1;
++  ppt->index_pt_theta_Psi = -1;
++  ppt->index_pt_delta_phi = -1;
++  ppt->index_pt_theta_phi = -1;
++  ppt->index_pt_phi = -1;
+ 
+   return _SUCCESS_;
+ }
+diff --git a/source/perturbations.c b/source/perturbations.c
+index 7p8q9r0..1s2t3u4 100644
 --- a/source/perturbations.c
 +++ b/source/perturbations.c
-@@
--/* FDM + Quintessence - Silvio A. Corrêa Junior */
--/* Added two scalar fields: Psi (FDM) and phi (quintessence) */
--
--/* In perturbations_init(): add new species */
--if (ppt->has_fdm == _TRUE_) {
-- class_call(perturbations_add_scalar_field(ppr, pba, ppt, pvec, index_pt, "Psi"),
-- ppt->error_message, ppt->error_message);
--}
--if (ppt->has_quintessence == _TRUE_) {
-- class_call(perturbations_add_scalar_field(ppr, pba, ppt, pvec, index_pt, "Psi"),
-- ppt->error_message, ppt->error_message);
--}
--
--/* In perturbations_derivs(): add KG equations */
--if (ppt->has_fdm == _TRUE_) {
-- double m2_a2 = pow(pba->a_today,2) * pow(ppt->m_Psi,2);
-- y[index_pt_delta_Psi]' = -y[index_pt_theta_Psi] - 0.5 * y[index_pt_h_prime] * y[index_pt_Psi];
-- y[index_pt_theta_Psi]' = -pba->H0 * pba->a_today / pba->a * y[index_pt_theta_Psi]
-- + k*k * y[index_pt_delta_Psi]
-- - m2_a2 * y[index_pt_delta_Psi];
--}
--
--if (ppt->has_quintessence == _TRUE_) {
-- double Vpp = -pow(ppt->M_quint,4)/pow(ppt->f_quint,2) * cos(y[index_pt_phi]/ppt->f_quint);
-- double m2_eff = pow(pba->a_today,2) * Vpp;
-- y[index_pt_delta_phi]' = -y[index_pt_theta_phi] - 0.5 * y[index_pt_h_prime] * y[index_pt_phi_prime];
-- y[index_pt_theta_phi]' = -pba->H0 * pba->a_today / pba->a * y[index_pt_theta_phi]
-- + k*k * y[index_pt_delta_phi]
-- - m2_eff * y[index_pt_delta_phi];
--}
-+/* FDM + Quintessence - Silvio A. Corrêa Junior */
-+/* Added two scalar fields: Psi (FDM) and phi (quintessence) */
+@@ -1200,6 +1200,48 @@ int perturbations_init(
+   int index_pt = ppt->pt_size;
+ 
++  /* FDM + Quintessence - Silvio A. Corrêa Junior */
++  /* Added two scalar fields: Psi (FDM) and phi (quintessence) */
 +
-+/* In perturbations_init(): add new species */
-+if (ppt->has_fdm == _TRUE_) {
-+  class_call(perturbations_add_scalar_field(ppr, pba, ppt, pvec, index_pt, "Psi"),
-+             ppt->error_message, ppt->error_message);
-+}
-+if (ppt->has_quintessence == _TRUE_) {
-+  class_call(perturbations_add_scalar_field(ppr, pba, ppt, pvec, index_pt, "phi"),  /* ← CORRIGIDO: era "Psi" */
-+             ppt->error_message, ppt->error_message);
-+}
++  /* Add FDM scalar field: Psi (delta, theta) */
++  if (ppt->has_fdm == _TRUE_) {
++    class_call(perturbations_add_scalar_field(ppr, pba, ppt, &index_pt, "Psi"),
++               ppt->error_message,
++               ppt->error_message);
++  }
 +
-+/* In perturbations_derivs(): add KG equations */
-+if (ppt->has_fdm == _TRUE_) {
-+  double m2_a2 = pba->a_today * pba->a_today * ppt->m_Psi * ppt->m_Psi;
++  /* Add Quintessence scalar field: phi (delta, theta, background phi) */
++  if (ppt->has_quintessence == _TRUE_) {
++    class_call(perturbations_add_scalar_field(ppr, pba, ppt, &index_pt, "phi"),
++               ppt->error_message,
++               ppt->error_message);
++  }
 +
-+  /* δΨ' = -θ_Ψ + (1/2) h' δΨ */
-+  y[index_pt_delta_Psi]' = -y[index_pt_theta_Psi] 
-+                         + 0.5 * y[index_pt_h_prime] * y[index_pt_delta_Psi];  /* ← SINAL + e δΨ */
++  /* Update total perturbation size */
++  ppt->pt_size = index_pt;
 +
-+  /* θ_Ψ' = -ℋ θ_Ψ + k² δΨ - m² a² δΨ */
-+  y[index_pt_theta_Psi]' = -(pba->H0 * pba->a_today / pba->a) * y[index_pt_theta_Psi]
-+                         + k*k * y[index_pt_delta_Psi]
-+                         - m2_a2 * y[index_pt_delta_Psi];
+   return _SUCCESS_;
+ }
+ 
++/** Helper: add scalar field (Psi or phi) to perturbation vector */
++int perturbations_add_scalar_field(
++    struct precision *ppr,
++    struct background *pba,
++    struct perturbations *ppt,
++    int *index_pt,
++    const char *name)
++{
++  if (strcmp(name, "Psi") == 0) {
++    ppt->index_pt_delta_Psi = (*index_pt)++;
++    ppt->index_pt_theta_Psi = (*index_pt)++;
++  }
++  else if (strcmp(name, "phi") == 0) {
++    ppt->index_pt_delta_phi = (*index_pt)++;
++    ppt->index_pt_theta_phi = (*index_pt)++;
++    ppt->index_pt_phi       = (*index_pt)++;  // Background field value
++  }
++  return _SUCCESS_;
 +}
 +
-+if (ppt->has_quintessence == _TRUE_) {
-+  /* V(ϕ) = M⁴ [1 + cos(ϕ/f)] → V''(ϕ) = - (M⁴ / f²) cos(ϕ/f) */
-+  double Vpp = -pow(ppt->M_quint, 4) / pow(ppt->f_quint, 2) * cos(y[index_pt_phi] / ppt->f_quint);
-+  double m2_eff = pba->a_today * pba->a_today * Vpp;
+@@ -5600,6 +5642,50 @@ int perturbations_derivs(
+   double k = ppt->k[ppt->index_k];
+ 
++  /* FDM + Quintessence - KG equations for perturbations */
 +
-+  /* δϕ' = -θ_ϕ + (1/2) h' δϕ */
-+  y[index_pt_delta_phi]' = -y[index_pt_theta_phi] 
-+                         + 0.5 * y[index_pt_h_prime] * y[index_pt_delta_phi];  /* ← δϕ, sinal + */
++  /* --- FDM: ultra-light scalar field with constant mass --- */
++  if (ppt->has_fdm == _TRUE_) {
++    double m2_a2 = pba->a_today * pba->a_today * ppt->m_Psi * ppt->m_Psi;
 +
-+  /* θ_ϕ' = -ℋ θ_ϕ + k² δϕ - m_eff² δϕ */
-+  y[index_pt_theta_phi]' = -(pba->H0 * pba->a_today / pba->a) * y[index_pt_theta_phi]
-+                         + k*k * y[index_pt_delta_phi]
-+                         - m2_eff * y[index_pt_delta_phi];
-+}
++    /* δΨ' = -θ_Ψ + (1/2) h' δΨ */
++    dy[ppt->index_pt_delta_Psi] = -y[ppt->index_pt_theta_Psi]
++                                + 0.5 * y[index_pt_h_prime] * y[ppt->index_pt_delta_Psi];
++
++    /* θ_Ψ' = -ℋ θ_Ψ + k² δΨ - m² a² δΨ */
++    dy[ppt->index_pt_theta_Psi] = -(pba->H0 * pba->a_today / pba->a) * y[ppt->index_pt_theta_Psi]
++                                + k*k * y[ppt->index_pt_delta_Psi]
++                                - m2_a2 * y[ppt->index_pt_delta_Psi];
++  }
++
++  /* --- Quintessence: axion-like field with V(ϕ) = M⁴ [1 + cos(ϕ/f)] --- */
++  if (ppt->has_quintessence == _TRUE_) {
++    /* V''(ϕ) = - (M⁴ / f²) cos(ϕ/f) */
++    double Vpp = -pow(ppt->M_quint, 4) / pow(ppt->f_quint, 2) * cos(y[ppt->index_pt_phi] / ppt->f_quint);
++    double m2_eff = pba->a_today * pba->a_today * Vpp;
++
++    /* δϕ' = -θ_ϕ + (1/2) h' δϕ */
++    dy[ppt->index_pt_delta_phi] = -y[ppt->index_pt_theta_phi]
++                                + 0.5 * y[index_pt_h_prime] * y[ppt->index_pt_delta_phi];
++
++    /* θ_ϕ' = -ℋ θ_ϕ + k² δϕ - a² V''(ϕ) δϕ */
++    dy[ppt->index_pt_theta_phi] = -(pba->H0 * pba->a_today / pba->a) * y[ppt->index_pt_theta_phi]
++                                + k*k * y[ppt->index_pt_delta_phi]
++                                - m2_eff * y[ppt->index_pt_delta_phi];
++  }
++
+   return _SUCCESS_;
+ }
+ 
+ /* End of file */
