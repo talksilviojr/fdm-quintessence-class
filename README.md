@@ -1,46 +1,22 @@
 # FDM + Quintessence in CLASS
 
-**Author**: Silvio A. Corrêa Junior  
-**Paper**: [Dynamical Dark Sector: FDM + Quintessence](https://zenodo.org/records/17566560)  
-**DOI**: `10.5281/zenodo.17566560`
-}
+**Paper**: [Dynamical Dark Sector: FDM + Quintessence](https://doi.org/10.5281/zenodo.17566560)  
+**Author**: Silvio A. Corrêa Junior
 
----
+## Model
+- **FDM**: ultra-light scalar, `m_Ψ = 10⁻²² eV`
+- **Quintessence**: axion-like, `V(ϕ) = M⁴ [1 + cos(ϕ/f)]`
 
-## Overview
-
-Modified **CLASS** code implementing a **unified dark sector** model with:
-
-- **Fuzzy Dark Matter (FDM)**: ultralight scalar field  
-  $$
-  m_\Psi = 10^{-22}~\text{eV}
-  $$
-
-- **Axion-like Quintessence**: thawing dynamics  
-  $$
-  V(\phi) = M^4 \left[1 + \cos\left(\frac{\phi}{f}\right)\right]
-  $$
-
-### Key Results
-| Observable | Value | Impact |
-|----------|-------|--------|
-| $ S_8 $ | $ \simeq 0.79 $ | Alivia Hubble + $\sigma_8$ tensions |
-| $ w_{\phi,0} $ | $ \simeq -0.92 $ | Thawing behavior (consistent with DESI hints) |
-
----
+## Key Results
+| Observable | Value | 
+|-----------|--------|
+| `S8` | 0.79 |
+| `w_φ,0` | -0.92 |
 
 ## Installation
-
 ```bash
-# 1. Clone CLASS public
-git clone https://github.com/lesgourgues/class_public.git class_fdmq
+git clone https://github.com/lesgourg/class_public.git class_fdmq
 cd class_fdmq
-
-# 2. Clone modifications
-git clone https://github.com/talksilviojr/fdm-quintessence-class.git modifications
-
-# 3. Apply patch
-patch -p1 < modifications/class_fdm_quintessence.patch
-
-# 4. Compile
-make clean && make -j$(nproc)
+git clone https://github.com/talksilviojr/fdm-quintessence-class.git mods
+patch -p1 < mods/class_fdm_quintessence.patch
+make -j
