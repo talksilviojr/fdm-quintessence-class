@@ -1,119 +1,126 @@
-diff --git a/include/perturbations.h b/include/perturbations.h
-index 1a2b3c4..5d6e7f8 100644
---- a/include/perturbations.h
-+++ b/include/perturbations.h
-@@ -450,6 +450,18 @@ struct perturbations {
+diff --git a/include/background.h b/include/background.h
+index xyz789..abc012 100644
+--- a/include/background.h
++++ b/include/background.h
+@@ -100,6 +100,20 @@ struct background {
    int has_fdm;
    double m_Psi;
+   double psi_ini;
++  double phi_ini;
++  double phi_prime_ini;
 +
-+  int has_quintessence;
-+  double M_quint;
-+  double f_quint;
++  int index_bg_phi;
++  int index_bg_phi_prime;
++  int index_bg_psi;
++  int index_bg_psi_prime;
++  int index_bg_rho_quint;
++  int index_bg_p_quint;
++  int index_bg_rho_fdm;
++  int index_bg_p_fdm;
 +
-+  int index_pt_delta_Psi;
-+  int index_pt_theta_Psi;
-+  int index_pt_delta_phi;
-+  int index_pt_theta_phi;
-+  int index_pt_phi;
++  double *phi_table;
++  double *phi_prime_table;
  };
 
 diff --git a/source/input.c b/source/input.c
 index 8f9g1h2..3i4j5k6 100644
 --- a/source/input.c
 +++ b/source/input.c
-@@ -2340,6 +2340,24 @@ int input_read_parameters(
-   class_read_double("m_Psi",ppt->m_Psi);
+@@ -2340,6 +2340,28 @@ int input_read_parameters(
    if (ppt->has_fdm == _TRUE_) {
      ppt->m_Psi *= (1.0 / _EV_IN_J_) / (pba->H0 * pba->H0);
 +  }
 +
-+  ppt->has_quintessence = _FALSE_;
-+  class_read_flag("has_quintessence",ppt->has_quintessence);
-+  if (ppt->has_quintessence == _TRUE_) {
-+    class_read_double("M_quint",ppt->M_quint);
-+    class_read_double("f_quint",ppt->f_quint);
++  pba->has_quintessence = _FALSE_;
++  class_read_flag("has_quintessence",pba->has_quintessence);
++  if (pba->has_quintessence == _TRUE_) {
++    class_read_double("M_quint",pba->M_quint);
++    class_read_double("f_quint",pba->f_quint);
++    class_read_double("phi_ini",pba->phi_ini);
++    class_read_double("phi_prime_ini",pba->phi_prime_ini);
++  } else {
++    pba->phi_ini = 0.0;
++    pba->phi_prime_ini = 0.0;
 +  }
 +
-+  ppt->index_pt_delta_Psi = -1;
-+  ppt->index_pt_theta_Psi = -1;
-+  ppt->index_pt_delta_phi = -1;
-+  ppt->index_pt_theta_phi = -1;
-+  ppt->index_pt_phi = -1;
++  // Initialize indices
++  pba->index_bg_phi = -1;
++  pba->index_bg_phi_prime = -1;
++  pba->index_bg_psi = -1;
++  pba->index_bg_psi_prime = -1;
++  pba->index_bg_rho_quint = -1;
++  pba->index_bg_p_quint = -1;
++  pba->index_bg_rho_fdm = -1;
++  pba->index_bg_p_fdm = -1;
  
    return _SUCCESS_;
  }
 
-diff --git a/source/perturbations.c b/source/perturbations.c
-index 7p8q9r0..1s2t3u4 100644
---- a/source/perturbations.c
-+++ b/source/perturbations.c
-@@ -10,6 +10,8 @@
- #include "perturbations.h"
- #include "background.h"
- #include "thermodynamics.h"
-+#include <string.h>
-+#include <math.h>
+diff --git a/source/background.c b/source/background.c
+index abc123..def456 100644
+--- a/source/background.c
++++ b/source/background.c
+@@ -1200,6 +1202,50 @@ int background_init(
+   int index_bg = pba->bg_size;
  
- /**************************************************************/
- 
-@@ -1200,6 +1202,48 @@ int perturbations_init(
-   int index_pt = ppt->pt_size;
- 
-+  /* FDM + Quintessence - Silvio A. Corrêa Junior */
-+  if (ppt->has_fdm == _TRUE_) {
-+    class_call(perturbations_add_scalar_field(ppr, pba, ppt, &index_pt, "Psi"),
-+               ppt->error_message, ppt->error_message);
++  /* FDM + Quintessence */
++  if (pba->has_fdm == _TRUE_) {
++    pba->index_bg_psi = index_bg++;
++    pba->index_bg_psi_prime = index_bg++;
++    pba->index_bg_rho_fdm = index_bg++;
++    pba->index_bg_p_fdm = index_bg++;
 +  }
-+  if (ppt->has_quintessence == _TRUE_) {
-+    class_call(perturbations_add_scalar_field(ppr, pba, ppt, &index_pt, "phi"),
-+               ppt->error_message, ppt->error_message);
++
++  if (pba->has_quintessence == _TRUE_) {
++    pba->index_bg_phi = index_bg++;
++    pba->index_bg_phi_prime = index_bg++;
++    pba->index_bg_rho_quint = index_bg++;
++    pba->index_bg_p_quint = index_bg++;
++
++    class_alloc(pba->phi_table, pba->bt_size * sizeof(double), pba->error_message);
++    class_alloc(pba->phi_prime_table, pba->bt_size * sizeof(double), pba->error_message);
 +  }
-+  ppt->pt_size = index_pt;
++
++  pba->bg_size = index_bg;
 +
    return _SUCCESS_;
  }
+
+@@ -3000,6 +3036,50 @@ int background_derivs(
+   double a = pvecback[pba->index_bg_a];
+   double H = pvecback[pba->index_bg_H];
  
-+int perturbations_add_scalar_field(
-+    struct precision *ppr, struct background *pba, struct perturbations *ppt,
-+    int *index_pt, const char *name)
-+{
-+  if (strcmp(name, "Psi") == 0) {
-+    ppt->index_pt_delta_Psi = (*index_pt)++;
-+    ppt->index_pt_theta_Psi = (*index_pt)++;
-+  }
-+  else if (strcmp(name, "phi") == 0) {
-+    ppt->index_pt_delta_phi = (*index_pt)++;
-+    ppt->index_pt_theta_phi = (*index_pt)++;
-+    ppt->index_pt_phi       = (*index_pt)++;
-+  }
-+  return _SUCCESS_;
-+}
- 
-@@ -5600,6 +5642,50 @@ int perturbations_derivs(
-   double k = ppt->k[ppt->index_k];
- 
-+  /* FDM + Quintessence */
-+  if (ppt->has_fdm == _TRUE_) {
-+    double m2_a2 = pba->a_today * pba->a_today * ppt->m_Psi * ppt->m_Psi;
++  /* Quintessence */
++  if (pba->has_quintessence == _TRUE_) {
++    double phi = pvecback[pba->index_bg_phi];
++    double phi_prime = pvecback[pba->index_bg_phi_prime];
++    double V = pba->M_quint*pba->M_quint*pba->M_quint*pba->M_quint * (1.0 + cos(phi / pba->f_quint));
++    double dV_dphi = -pba->M_quint*pba->M_quint*pba->M_quint*pba->M_quint / pba->f_quint * sin(phi / pba->f_quint);
 +
-+    dy[ppt->index_pt_delta_Psi] = -y[ppt->index_pt_theta_Psi]
-+                                + 0.5 * y[ppt->index_pt_h_prime] * y[ppt->index_pt_delta_Psi];
++    dy[pba->index_bg_phi] = phi_prime;
++    dy[pba->index_bg_phi_prime] = -3.0 * H * phi_prime - dV_dphi;
 +
-+    dy[ppt->index_pt_theta_Psi] = -(pba->H0 * pba->a_today / pba->a) * y[ppt->index_pt_theta_Psi]
-+                                + k*k * y[ppt->index_pt_delta_Psi]
-+                                - m2_a2 * y[ppt->index_pt_delta_Psi];
++    double rho_quint = 0.5 * phi_prime*phi_prime + V;
++    double p_quint = 0.5 * phi_prime*phi_prime - V;
++
++    pvecback[pba->index_bg_rho_quint] = rho_quint;
++    pvecback[pba->index_bg_p_quint] = p_quint;
 +  }
 +
-+  if (ppt->has_quintessence == _TRUE_) {
-+    double Vpp = -pow(ppt->M_quint, 4) / pow(ppt->f_quint, 2) * cos(y[ppt->index_pt_phi] / ppt->f_quint);
-+    double m2_eff = pba->a_today * pba->a_today * Vpp;
++  /* FDM */
++  if (pba->has_fdm == _TRUE_) {
++    double psi = pvecback[pba->index_bg_psi];
++    double psi_prime = pvecback[pba->index_bg_psi_prime];
++    double m2_a2 = a*a * pba->m_Psi*pba->m_Psi;
 +
-+    dy[ppt->index_pt_delta_phi] = -y[ppt->index_pt_theta_phi]
-+                                + 0.5 * y[ppt->index_pt_h_prime] * y[ppt->index_pt_delta_phi];
++    dy[pba->index_bg_psi] = psi_prime;
++    dy[pba->index_bg_psi_prime] = -3.0 * H * psi_prime - m2_a2 * psi;
 +
-+    dy[ppt->index_pt_theta_phi] = -(pba->H0 * pba->a_today / pba->a) * y[ppt->index_pt_theta_phi]
-+                                + k*k * y[ppt->index_pt_delta_phi]
-+                                - m2_eff * y[ppt->index_pt_delta_phi];
++    double rho_fdm = 0.5 * psi_prime*psi_prime + 0.5 * m2_a2 * psi*psi;
++    double p_fdm = 0.5 * psi_prime*psi_prime - 0.5 * m2_a2 * psi*psi;
++
++    pvecback[pba->index_bg_rho_fdm] = rho_fdm;
++    pvecback[pba->index_bg_p_fdm] = p_fdm;
 +  }
 +
    return _SUCCESS_;
