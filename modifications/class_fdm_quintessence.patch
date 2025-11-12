@@ -1,12 +1,83 @@
+diff --git a/include/background.h b/include/background.h
+index xyz789..abc012 100644
+--- a/include/background.h
++++ b/include/background.h
+@@ -100,6 +100,26 @@ struct background {
+   int has_fdm;
+   double m_Psi;
+   double psi_ini;
++  double psi_prime_ini;
++
++  /* Quintessence (axion-like) */
++  double phi_ini;
++  double phi_prime_ini;
++  double M_quint;   /* mass scale in V = M^4 (1 + cos(phi/f)) */
++  double f_quint;   /* decay constant */
++
++  /* Background indices */
++  int index_bg_phi;
++  int index_bg_phi_prime;
++  int index_bg_psi;
++  int index_bg_psi_prime;
++  int index_bg_rho_quint;
++  int index_bg_p_quint;
++  int index_bg_rho_fdm;
++  int index_bg_p_fdm;
++
++  /* Optional: store field evolution (for output or perturbations) */
++  double *phi_table;
++  double *phi_prime_table;
+ };
+ 
+diff --git a/source/input.c b/source/input.c
+index 8f9g1h2..3i4j5k6 100644
+--- a/source/input.c
++++ b/source/input.c
+@@ -2340,6 +2340,40 @@ int input_read_parameters(
+   if (ppt->has_fdm == _TRUE_) {
+     ppt->m_Psi *= (1.0 / _EV_IN_J_) / (pba->H0 * pba->H0);
+   }
++
++  /* === Quintessence === */
++  pba->has_quintessence = _FALSE_;
++  class_read_flag("has_quintessence", pba->has_quintessence);
++
++  if (pba->has_quintessence == _TRUE_) {
++    class_read_double("M_quint", pba->M_quint);
++    class_read_double("f_quint", pba->f_quint);
++    class_read_double("phi_ini", pba->phi_ini);
++    class_read_double("phi_prime_ini", pba->phi_prime_ini);
++  } else {
++    pba->phi_ini = 0.0;
++    pba->phi_prime_ini = 0.0;
++    pba->M_quint = 0.0;
++    pba->f_quint = 1.0;
++  }
++
++  /* === FDM initial derivative === */
++  if (pba->has_fdm == _TRUE_) {
++    class_read_double("psi_prime_ini", pba->psi_prime_ini);
++  } else {
++    pba->psi_prime_ini = 0.0;
++  }
++
++  /* Initialize indices to safe values */
++  pba->index_bg_phi = pba->index_bg_phi_prime = -1;
++  pba->index_bg_psi = pba->index_bg_psi_prime = -1;
++  pba->index_bg_rho_quint = pba->index_bg_p_quint = -1;
++  pba->index_bg_rho_fdm = pba->index_bg_p_fdm = -1;
+ 
+   return _SUCCESS_;
+ }
+ 
+diff --git a/source/background.c b/source/background.c
+index abc123..def456 100644
 --- a/source/background.c
 +++ b/source/background.c
-@@ -1200,6 +1202,52 @@
- int background_init(
+@@ -1200,6 +1202,68 @@ int background_init(
    int index_bg = pba->bg_size;
  
-+  /* === FDM and Quintessence extensions === */
-+
-+  /* --- Fuzzy Dark Matter --- */
++  /* === FDM: Fuzzy Dark Matter === */
 +  if (pba->has_fdm == _TRUE_) {
 +    pba->index_bg_psi = index_bg++;
 +    pba->index_bg_psi_prime = index_bg++;
@@ -14,67 +85,84 @@
 +    pba->index_bg_p_fdm = index_bg++;
 +  }
 +
-+  /* --- Quintessence --- */
++  /* === Quintessence: Axion-like field === */
 +  if (pba->has_quintessence == _TRUE_) {
 +    pba->index_bg_phi = index_bg++;
 +    pba->index_bg_phi_prime = index_bg++;
 +    pba->index_bg_rho_quint = index_bg++;
 +    pba->index_bg_p_quint = index_bg++;
 +
-+    /* Allocate evolution tables */
++    /* Allocate tables to store field evolution */
 +    class_alloc(pba->phi_table, pba->bt_size * sizeof(double), pba->error_message);
 +    class_alloc(pba->phi_prime_table, pba->bt_size * sizeof(double), pba->error_message);
 +  }
 +
++  /* Update total background size */
 +  pba->bg_size = index_bg;
++
++  /* === INITIAL CONDITIONS (CRITICAL!) === */
++  if (pba->has_quintessence == _TRUE_) {
++    pvecback[pba->index_bg_phi] = pba->phi_ini;
++    pvecback[pba->index_bg_phi_prime] = pba->phi_prime_ini;
++    pba->phi_table[0] = pba->phi_ini;
++    pba->phi_prime_table[0] = pba->phi_prime_ini;
++  }
++
++  if (pba->has_fdm == _TRUE_) {
++    pvecback[pba->index_bg_psi] = pba->psi_ini;
++    pvecback[pba->index_bg_psi_prime] = pba->psi_prime_ini;
++  }
 +
    return _SUCCESS_;
  }
  
-@@ -3000,6 +3050,47 @@
- int background_derivs(
+@@ -3000,6 +3074,56 @@ int background_derivs(
    double a = pvecback[pba->index_bg_a];
    double H = pvecback[pba->index_bg_H];
-+  double a_prime_over_a = a * H;
++  double a_prime_over_a = a * H;  /* = d ln a / d tau */
 +
-+  /* --- Quintessence dynamics --- */
++  /* === Quintessence: V = M^4 (1 + cos(phi/f)) === */
 +  if (pba->has_quintessence == _TRUE_) {
-+    double phi        = pvecback[pba->index_bg_phi];
-+    double phi_prime  = pvecback[pba->index_bg_phi_prime];
++    double phi = pvecback[pba->index_bg_phi];
++    double phi_prime = pvecback[pba->index_bg_phi_prime];
 +
-+    /* Potential: V(phi) = M^4 * (1 + cos(phi / f)) */
 +    double M4 = pba->M_quint * pba->M_quint * pba->M_quint * pba->M_quint;
 +    double V = M4 * (1.0 + cos(phi / pba->f_quint));
-+    double dV_dphi = - M4 / pba->f_quint * sin(phi / pba->f_quint);
++    double dV_dphi = -M4 / pba->f_quint * sin(phi / pba->f_quint);
 +
-+    /* Klein-Gordon equation in conformal time: phi'' + 2(a'/a)phi' + a^2 dV/dphi = 0 */
-+    dy[pba->index_bg_phi]        = phi_prime;
-+    dy[pba->index_bg_phi_prime]  = -2.0 * a_prime_over_a * phi_prime - a * a * dV_dphi;
++    /* KG equation: phi'' + 2 (a'/a) phi' + a^2 dV/dphi = 0 */
++    dy[pba->index_bg_phi] = phi_prime;
++    dy[pba->index_bg_phi_prime] = -2.0 * a_prime_over_a * phi_prime - a * a * dV_dphi;
 +
-+    /* Energy density and pressure. These should be added to the total rho 
-+       and p used in the Friedmann equations elsewhere in this function. */
-+    double rho_quint = 0.5 * (phi_prime / a) * (phi_prime / a) + V;
-+    double p_quint   = 0.5 * (phi_prime / a) * (phi_prime / a) - V;
++    /* Physical energy density and pressure */
++    double kin = 0.5 * (phi_prime / a) * (phi_prime / a);
++    double rho_quint = kin + V;
++    double p_quint = kin - V;
++
++    pvecback[pba->index_bg_rho_quint] = rho_quint;
++    pvecback[pba->index_bg_p_quint] = p_quint;
 +  }
 +
-+  /* --- Fuzzy Dark Matter dynamics --- */
++  /* === FDM: Scalar field with m^2 psi^2 potential === */
 +  if (pba->has_fdm == _TRUE_) {
-+    double psi       = pvecback[pba->index_bg_psi];
++    double psi = pvecback[pba->index_bg_psi];
 +    double psi_prime = pvecback[pba->index_bg_psi_prime];
-+    double m_psi_sq  = pba->m_Psi * pba->m_Psi;
++    double m2 = pba->m_Psi * pba->m_Psi;
 +
-+    /* Potential V(psi) = 0.5 * m^2 * psi^2 */
-+    double V_fdm = 0.5 * m_psi_sq * psi * psi;
++    double V_fdm = 0.5 * m2 * psi * psi;
 +
-+    /* Klein-Gordon equation: psi'' + 2(a'/a)psi' + a^2 * m^2 * psi = 0 */
-+    dy[pba->index_bg_psi]        = psi_prime;
-+    dy[pba->index_bg_psi_prime]  = -2.0 * a_prime_over_a * psi_prime - a * a * m_psi_sq * psi;
++    /* KG equation: psi'' + 2 (a'/a) psi' + a^2 m^2 psi = 0 */
++    dy[pba->index_bg_psi] = psi_prime;
++    dy[pba->index_bg_psi_prime] = -2.0 * a_prime_over_a * psi_prime - a * a * m2 * psi;
 +
-+    /* Energy density and pressure. These should be added to the total rho 
-+       and p used in the Friedmann equations elsewhere in this function. */
-+    double rho_fdm = 0.5 * (psi_prime / a) * (psi_prime / a) + V_fdm;
-+    double p_fdm   = 0.5 * (psi_prime / a) * (psi_prime / a) - V_fdm;
++    /* Physical energy density and pressure */
++    double kin = 0.5 * (psi_prime / a) * (psi_prime / a);
++    double rho_fdm = kin + V_fdm;
++    double p_fdm = kin - V_fdm;
++
++    pvecback[pba->index_bg_rho_fdm] = rho_fdm;
++    pvecback[pba->index_bg_p_fdm] = p_fdm;
 +  }
- 
++
    return _SUCCESS_;
  }
