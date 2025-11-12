@@ -2,12 +2,17 @@ diff --git a/include/background.h b/include/background.h
 index xyz789..abc012 100644
 --- a/include/background.h
 +++ b/include/background.h
-@@ -100,6 +100,20 @@ struct background {
+@@ -100,6 +100,23 @@ struct background {
    int has_fdm;
    double m_Psi;
    double psi_ini;
++  double psi_prime_ini;
++
 +  double phi_ini;
 +  double phi_prime_ini;
++
++  double M_quint;
++  double f_quint;
 +
 +  int index_bg_phi;
 +  int index_bg_phi_prime;
@@ -21,18 +26,19 @@ index xyz789..abc012 100644
 +  double *phi_table;
 +  double *phi_prime_table;
  };
-
+ 
 diff --git a/source/input.c b/source/input.c
 index 8f9g1h2..3i4j5k6 100644
 --- a/source/input.c
 +++ b/source/input.c
-@@ -2340,6 +2340,28 @@ int input_read_parameters(
+@@ -2340,6 +2340,40 @@ int input_read_parameters(
    if (ppt->has_fdm == _TRUE_) {
      ppt->m_Psi *= (1.0 / _EV_IN_J_) / (pba->H0 * pba->H0);
-+  }
+   }
 +
 +  pba->has_quintessence = _FALSE_;
 +  class_read_flag("has_quintessence",pba->has_quintessence);
++
 +  if (pba->has_quintessence == _TRUE_) {
 +    class_read_double("M_quint",pba->M_quint);
 +    class_read_double("f_quint",pba->f_quint);
@@ -41,9 +47,17 @@ index 8f9g1h2..3i4j5k6 100644
 +  } else {
 +    pba->phi_ini = 0.0;
 +    pba->phi_prime_ini = 0.0;
++    pba->M_quint = 0.0;
++    pba->f_quint = 0.0;
 +  }
 +
-+  // Initialize indices
++  if (pba->has_fdm == _TRUE_) {
++    class_read_double("psi_prime_ini",pba->psi_prime_ini);
++  } else {
++    pba->psi_prime_ini = 0.0;
++  }
++
++  // Initialize indices to invalid
 +  pba->index_bg_phi = -1;
 +  pba->index_bg_phi_prime = -1;
 +  pba->index_bg_psi = -1;
@@ -55,15 +69,15 @@ index 8f9g1h2..3i4j5k6 100644
  
    return _SUCCESS_;
  }
-
+ 
 diff --git a/source/background.c b/source/background.c
 index abc123..def456 100644
 --- a/source/background.c
 +++ b/source/background.c
-@@ -1200,6 +1202,50 @@ int background_init(
+@@ -1200,6 +1202,60 @@ int background_init(
    int index_bg = pba->bg_size;
  
-+  /* FDM + Quintessence */
++  /* FDM */
 +  if (pba->has_fdm == _TRUE_) {
 +    pba->index_bg_psi = index_bg++;
 +    pba->index_bg_psi_prime = index_bg++;
@@ -71,6 +85,7 @@ index abc123..def456 100644
 +    pba->index_bg_p_fdm = index_bg++;
 +  }
 +
++  /* Quintessence */
 +  if (pba->has_quintessence == _TRUE_) {
 +    pba->index_bg_phi = index_bg++;
 +    pba->index_bg_phi_prime = index_bg++;
@@ -83,17 +98,29 @@ index abc123..def456 100644
 +
 +  pba->bg_size = index_bg;
 +
++  /* Initialize initial conditions */
++  if (pba->has_quintessence == _TRUE_) {
++    pvecback[pba->index_bg_phi] = pba->phi_ini;
++    pvecback[pba->index_bg_phi_prime] = pba->phi_prime_ini;
++  }
++
++  if (pba->has_fdm == _TRUE_) {
++    pvecback[pba->index_bg_psi] = pba->psi_ini;
++    pvecback[pba->index_bg_psi_prime] = pba->psi_prime_ini;
++  }
++
    return _SUCCESS_;
  }
-
-@@ -3000,6 +3036,50 @@ int background_derivs(
+ 
+@@ -3000,6 +3074,50 @@ int background_derivs(
    double a = pvecback[pba->index_bg_a];
    double H = pvecback[pba->index_bg_H];
  
-+  /* Quintessence */
++  /* Quintessence (axion-like) */
 +  if (pba->has_quintessence == _TRUE_) {
 +    double phi = pvecback[pba->index_bg_phi];
 +    double phi_prime = pvecback[pba->index_bg_phi_prime];
++
 +    double V = pba->M_quint*pba->M_quint*pba->M_quint*pba->M_quint * (1.0 + cos(phi / pba->f_quint));
 +    double dV_dphi = -pba->M_quint*pba->M_quint*pba->M_quint*pba->M_quint / pba->f_quint * sin(phi / pba->f_quint);
 +
@@ -107,7 +134,7 @@ index abc123..def456 100644
 +    pvecback[pba->index_bg_p_quint] = p_quint;
 +  }
 +
-+  /* FDM */
++  /* Fuzzy Dark Matter (FDM) */
 +  if (pba->has_fdm == _TRUE_) {
 +    double psi = pvecback[pba->index_bg_psi];
 +    double psi_prime = pvecback[pba->index_bg_psi_prime];
