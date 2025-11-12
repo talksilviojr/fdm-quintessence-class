@@ -1,0 +1,56 @@
+################################################################################
+#
+# SECTION 6.g: Dynamical Dark Sector (FDM + Quintessence)
+#
+# This section contains parameters for a dynamic dark sector model including
+# Fuzzy Dark Matter (FDM) and an axion-like Quintessence field.
+#
+# Author of this modification: Silvio A. Corrêa Junior
+#
+################################################################################
+
+# --- Axion-like Quintessence Parameters ---
+
+# Do you want to include the Quintessence scalar field?
+# V(phi) = M^4 * [1 + cos(phi/f)]
+#
+has_quintessence = no   # (yes | no)
+
+# Mass scale 'M' of the quintessence potential.
+# This value must be given in reduced Planck units (M_pl).
+#
+M_quint = 0.0
+
+# Decay constant 'f' of the quintessence potential.
+# This value must be given in reduced Planck units (M_pl).
+#
+f_quint = 1.0
+
+# Initial value of the quintessence field 'phi'.
+#
+phi_ini = 0.0
+
+# Initial derivative d(phi)/d(tau) of the quintessence field, where
+# tau is the conformal time.
+#
+phi_prime_ini = 0.0
+
+# --- Fuzzy Dark Matter (FDM) Parameters ---
+
+# Do you want to include the FDM scalar field?
+# V(psi) = 0.5 * m^2 * psi^2
+#
+has_fdm = no            # (yes | no)
+
+# Mass 'm' of the FDM particle in electron-volts (eV).
+# A typical value for FDM is around 1.0e-22 eV.
+#
+m_Psi = 0.0
+
+# Initial value of the FDM field 'psi'.
+#
+psi_ini = 0.0
+
+# Initial derivative d(psi)/d(tau) of the FDM field.
+#
+psi_prime_ini = 0.0
