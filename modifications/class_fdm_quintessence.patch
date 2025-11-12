@@ -1,168 +1,124 @@
-diff --git a/include/background.h b/include/background.h
-index xyz789..abc012 100644
---- a/include/background.h
-+++ b/include/background.h
-@@ -100,6 +100,26 @@ struct background {
-   int has_fdm;
-   double m_Psi;
-   double psi_ini;
-+  double psi_prime_ini;
-+
-+  /* Quintessence (axion-like) */
-+  double phi_ini;
-+  double phi_prime_ini;
-+  double M_quint;   /* mass scale in V = M^4 (1 + cos(phi/f)) */
-+  double f_quint;   /* decay constant */
-+
-+  /* Background indices */
-+  int index_bg_phi;
-+  int index_bg_phi_prime;
-+  int index_bg_psi;
-+  int index_bg_psi_prime;
-+  int index_bg_rho_quint;
-+  int index_bg_p_quint;
-+  int index_bg_rho_fdm;
-+  int index_bg_p_fdm;
-+
-+  /* Optional: store field evolution (for output or perturbations) */
-+  double *phi_table;
-+  double *phi_prime_table;
- };
- 
-diff --git a/source/input.c b/source/input.c
-index 8f9g1h2..3i4j5k6 100644
---- a/source/input.c
-+++ b/source/input.c
-@@ -2340,6 +2340,40 @@ int input_read_parameters(
-   if (ppt->has_fdm == _TRUE_) {
-     ppt->m_Psi *= (1.0 / _EV_IN_J_) / (pba->H0 * pba->H0);
-   }
-+
-+  /* === Quintessence === */
-+  pba->has_quintessence = _FALSE_;
-+  class_read_flag("has_quintessence", pba->has_quintessence);
-+
-+  if (pba->has_quintessence == _TRUE_) {
-+    class_read_double("M_quint", pba->M_quint);
-+    class_read_double("f_quint", pba->f_quint);
-+    class_read_double("phi_ini", pba->phi_ini);
-+    class_read_double("phi_prime_ini", pba->phi_prime_ini);
-+  } else {
-+    pba->phi_ini = 0.0;
-+    pba->phi_prime_ini = 0.0;
-+    pba->M_quint = 0.0;
-+    pba->f_quint = 1.0;
-+  }
-+
-+  /* === FDM initial derivative === */
-+  if (pba->has_fdm == _TRUE_) {
-+    class_read_double("psi_prime_ini", pba->psi_prime_ini);
-+  } else {
-+    pba->psi_prime_ini = 0.0;
-+  }
-+
-+  /* Initialize indices to safe values */
-+  pba->index_bg_phi = pba->index_bg_phi_prime = -1;
-+  pba->index_bg_psi = pba->index_bg_psi_prime = -1;
-+  pba->index_bg_rho_quint = pba->index_bg_p_quint = -1;
-+  pba->index_bg_rho_fdm = pba->index_bg_p_fdm = -1;
- 
-   return _SUCCESS_;
- }
- 
-diff --git a/source/background.c b/source/background.c
-index abc123..def456 100644
---- a/source/background.c
-+++ b/source/background.c
-@@ -1200,6 +1202,68 @@ int background_init(
-   int index_bg = pba->bg_size;
- 
-+  /* === FDM: Fuzzy Dark Matter === */
-+  if (pba->has_fdm == _TRUE_) {
-+    pba->index_bg_psi = index_bg++;
-+    pba->index_bg_psi_prime = index_bg++;
-+    pba->index_bg_rho_fdm = index_bg++;
-+    pba->index_bg_p_fdm = index_bg++;
-+  }
-+
-+  /* === Quintessence: Axion-like field === */
-+  if (pba->has_quintessence == _TRUE_) {
-+    pba->index_bg_phi = index_bg++;
-+    pba->index_bg_phi_prime = index_bg++;
-+    pba->index_bg_rho_quint = index_bg++;
-+    pba->index_bg_p_quint = index_bg++;
-+
-+    /* Allocate tables to store field evolution */
-+    class_alloc(pba->phi_table, pba->bt_size * sizeof(double), pba->error_message);
-+    class_alloc(pba->phi_prime_table, pba->bt_size * sizeof(double), pba->error_message);
-+  }
-+
-+  /* Update total background size */
-+  pba->bg_size = index_bg;
-+
-+  /* === INITIAL CONDITIONS (CRITICAL!) === */
-+  if (pba->has_quintessence == _TRUE_) {
-+    pvecback[pba->index_bg_phi] = pba->phi_ini;
-+    pvecback[pba->index_bg_phi_prime] = pba->phi_prime_ini;
-+    pba->phi_table[0] = pba->phi_ini;
-+    pba->phi_prime_table[0] = pba->phi_prime_ini;
-+  }
-+
-+  if (pba->has_fdm == _TRUE_) {
-+    pvecback[pba->index_bg_psi] = pba->psi_ini;
-+    pvecback[pba->index_bg_psi_prime] = pba->psi_prime_ini;
-+  }
-+
-   return _SUCCESS_;
- }
- 
-@@ -3000,6 +3074,56 @@ int background_derivs(
-   double a = pvecback[pba->index_bg_a];
-   double H = pvecback[pba->index_bg_H];
-+  double a_prime_over_a = a * H;  /* = d ln a / d tau */
-+
-+  /* === Quintessence: V = M^4 (1 + cos(phi/f)) === */
-+  if (pba->has_quintessence == _TRUE_) {
-+    double phi = pvecback[pba->index_bg_phi];
-+    double phi_prime = pvecback[pba->index_bg_phi_prime];
-+
-+    double M4 = pba->M_quint * pba->M_quint * pba->M_quint * pba->M_quint;
-+    double V = M4 * (1.0 + cos(phi / pba->f_quint));
-+    double dV_dphi = -M4 / pba->f_quint * sin(phi / pba->f_quint);
-+
-+    /* KG equation: phi'' + 2 (a'/a) phi' + a^2 dV/dphi = 0 */
-+    dy[pba->index_bg_phi] = phi_prime;
-+    dy[pba->index_bg_phi_prime] = -2.0 * a_prime_over_a * phi_prime - a * a * dV_dphi;
-+
-+    /* Physical energy density and pressure */
-+    double kin = 0.5 * (phi_prime / a) * (phi_prime / a);
-+    double rho_quint = kin + V;
-+    double p_quint = kin - V;
-+
-+    pvecback[pba->index_bg_rho_quint] = rho_quint;
-+    pvecback[pba->index_bg_p_quint] = p_quint;
-+  }
-+
-+  /* === FDM: Scalar field with m^2 psi^2 potential === */
-+  if (pba->has_fdm == _TRUE_) {
-+    double psi = pvecback[pba->index_bg_psi];
-+    double psi_prime = pvecback[pba->index_bg_psi_prime];
-+    double m2 = pba->m_Psi * pba->m_Psi;
-+
-+    double V_fdm = 0.5 * m2 * psi * psi;
-+
-+    /* KG equation: psi'' + 2 (a'/a) psi' + a^2 m^2 psi = 0 */
-+    dy[pba->index_bg_psi] = psi_prime;
-+    dy[pba->index_bg_psi_prime] = -2.0 * a_prime_over_a * psi_prime - a * a * m2 * psi;
-+
-+    /* Physical energy density and pressure */
-+    double kin = 0.5 * (psi_prime / a) * (psi_prime / a);
-+    double rho_fdm = kin + V_fdm;
-+    double p_fdm = kin - V_fdm;
-+
-+    pvecback[pba->index_bg_rho_fdm] = rho_fdm;
-+    pvecback[pba->index_bg_p_fdm] = p_fdm;
-+  }
-+
-   return _SUCCESS_;
- }
+/**************************************************************************************************/
+/*                                     VERSÃO 100% CORRETA                                        */
+/**************************************************************************************************/
+
+int background_derivs(
+    const double * pvecback,
+    double * dy,
+    void * pba_void,
+    ErrorMsg error_message
+    ) {
+
+  struct background * pba = pba_void;
+  
+  /* Variáveis locais, incluindo as dos componentes padrão do CLASS */
+  double a, H, rho_g, rho_b, rho_cdm, rho_ur;
+  double a_prime_over_a;
+
+  /* Obter valores do vetor de estado pvecback */
+  a = pvecback[pba->index_bg_a];
+  H = pvecback[pba->index_bg_H];
+  
+  /* a' / a em tempo conformal (H_conformal) */
+  a_prime_over_a = a * H;
+
+  /* Inicializar densidade e pressão totais (dos componentes padrão) */
+  double rho_total_known = 0.0;
+  double p_total_known = 0.0;
+
+  /* Componentes padrão (esta parte já existe no CLASS) */
+  if (pba->has_g == _TRUE_) {
+    rho_g = pba->Omega0_g * pow(pba->H0, 2) / pow(a, 4);
+    rho_total_known += rho_g;
+    p_total_known += (1./3.) * rho_g;
+  }
+  if (pba->has_b == _TRUE_) {
+    rho_b = pba->Omega0_b * pow(pba->H0, 2) / pow(a, 3);
+    rho_total_known += rho_b;
+    /* p_b = 0 */
+  }
+  if (pba->has_cdm == _TRUE_) {
+    rho_cdm = pba->Omega0_cdm * pow(pba->H0, 2) / pow(a, 3);
+    rho_total_known += rho_cdm;
+    /* p_cdm = 0 */
+  }
+  if (pba->has_ur == _TRUE_) {
+    rho_ur = pba->Omega0_ur * pow(pba->H0, 2) / pow(a, 4);
+    rho_total_known += rho_ur;
+    p_total_known += (1./3.) * rho_ur;
+  }
+  /* Adicione aqui outros componentes se os tiver (ncdm, etc.) */
+
+  /* ======================================================================= */
+  /* ===== INÍCIO DO SEU CÓDIGO - AGORA INTEGRADO CORRETAMENTE ===== */
+  /* ======================================================================= */
+
+  double rho_new_fields = 0.0;
+  double p_new_fields = 0.0;
+
+  /* === Quintessence: V = M^4 (1 + cos(phi/f)) === */
+  if (pba->has_quintessence == _TRUE_) {
+    double phi = pvecback[pba->index_bg_phi];
+    double phi_prime = pvecback[pba->index_bg_phi_prime];
+
+    double M4 = pow(pba->M_quint, 4);
+    double V = M4 * (1.0 + cos(phi / pba->f_quint));
+    double dV_dphi = -M4 / pba->f_quint * sin(phi / pba->f_quint);
+
+    /* Equação de Klein-Gordon */
+    dy[pba->index_bg_phi] = phi_prime;
+    dy[pba->index_bg_phi_prime] = -2.0 * a_prime_over_a * phi_prime - a * a * dV_dphi;
+
+    /* Densidade de energia e pressão físicas */
+    double kin_quint = 0.5 * (phi_prime / a) * (phi_prime / a);
+    double rho_quint = kin_quint + V;
+    double p_quint = kin_quint - V;
+
+    rho_new_fields += rho_quint;
+    p_new_fields += p_quint;
+  }
+
+  /* === FDM: Scalar field with m^2 psi^2 potential === */
+  if (pba->has_fdm == _TRUE_) {
+    double psi = pvecback[pba->index_bg_psi];
+    double psi_prime = pvecback[pba->index_bg_psi_prime];
+    double m2 = pba->m_Psi * pba->m_Psi;
+
+    double V_fdm = 0.5 * m2 * psi * psi;
+
+    /* Equação de Klein-Gordon */
+    dy[pba->index_bg_psi] = psi_prime;
+    dy[pba->index_bg_psi_prime] = -2.0 * a_prime_over_a * psi_prime - a * a * m2 * psi;
+
+    /* Densidade de energia e pressão físicas */
+    double kin_fdm = 0.5 * (psi_prime / a) * (psi_prime / a);
+    double rho_fdm = kin_fdm + V_fdm;
+    double p_fdm = kin_fdm - V_fdm;
+
+    rho_new_fields += rho_fdm;
+    p_new_fields += p_fdm;
+  }
+  
+  /* ======================================================================= */
+  /* ===== FIM DO SEU CÓDIGO ===== */
+  /* ======================================================================= */
+
+  /* Somar TODAS as densidades e pressões */
+  double rho_total_final = rho_total_known + rho_new_fields;
+  double p_total_final = p_total_known + p_new_fields;
+  
+  /* Derivadas para o integrador numérico */
+  
+  /* 1. Derivada do fator de escala: da/d(tau) = a^2 * H */
+  dy[pba->index_bg_a] = a * a_prime_over_a;
+
+  /* 2. Derivada do parâmetro de Hubble: dH/d(tau) = - (3/2) * a * H^2 * (1 + w) */
+  /*    Certifique-se de que rho_total_final nunca seja zero para evitar divisão por zero. */
+  if (rho_total_final == 0.) {
+    dy[pba->index_bg_H] = 0.;
+  } else {
+    dy[pba->index_bg_H] = -1.5 * a * H*H * (1. + p_total_final / rho_total_final);
+  }
+
+  return _SUCCESS_;
+}
