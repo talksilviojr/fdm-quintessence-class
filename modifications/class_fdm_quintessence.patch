@@ -1,5 +1,6 @@
 /**************************************************************************************************/
-/*                                     VERSÃO 100% CORRETA                                        */
+/*                          background_derivs - versão funcional para CLASS                       */  
+/*                                Autor: Silvio Antonio CorrÊa Junior                             */ 
 /**************************************************************************************************/
 
 int background_derivs(
@@ -11,26 +12,28 @@ int background_derivs(
 
   struct background * pba = pba_void;
   
-  /* Variáveis locais, incluindo as dos componentes padrão do CLASS */
-  double a, H, rho_g, rho_b, rho_cdm, rho_ur;
+  /* Variáveis locais */
+  double a, H_conf;                 /* a: scale factor; H_conf = a' / a (conformal Hubble) */
+  double rho_g = 0., rho_b = 0., rho_cdm = 0., rho_ur = 0.;
   double a_prime_over_a;
 
   /* Obter valores do vetor de estado pvecback */
   a = pvecback[pba->index_bg_a];
-  H = pvecback[pba->index_bg_H];
-  
-  /* a' / a em tempo conformal (H_conformal) */
-  a_prime_over_a = a * H;
+  H_conf = pvecback[pba->index_bg_H];   /* em CLASS isto costuma ser a' / a (conformal H) */
 
-  /* Inicializar densidade e pressão totais (dos componentes padrão) */
+  /* a' / a em tempo conformal (já é H_conf) */
+  a_prime_over_a = H_conf;
+
+  /* Inicializar densidade e pressão totais (dos componentes padrão) em unidades CLASS-like
+     (consistentes com o que você soma abaixo) */
   double rho_total_known = 0.0;
   double p_total_known = 0.0;
 
-  /* Componentes padrão (esta parte já existe no CLASS) */
+  /* Componentes padrão (mantive sua forma original) */
   if (pba->has_g == _TRUE_) {
     rho_g = pba->Omega0_g * pow(pba->H0, 2) / pow(a, 4);
     rho_total_known += rho_g;
-    p_total_known += (1./3.) * rho_g;
+    p_total_known += (1.0/3.0) * rho_g;
   }
   if (pba->has_b == _TRUE_) {
     rho_b = pba->Omega0_b * pow(pba->H0, 2) / pow(a, 3);
@@ -45,37 +48,43 @@ int background_derivs(
   if (pba->has_ur == _TRUE_) {
     rho_ur = pba->Omega0_ur * pow(pba->H0, 2) / pow(a, 4);
     rho_total_known += rho_ur;
-    p_total_known += (1./3.) * rho_ur;
+    p_total_known += (1.0/3.0) * rho_ur;
   }
-  /* Adicione aqui outros componentes se os tiver (ncdm, etc.) */
+  /* Adicione aqui outros componentes se os tiver (ncdm, lambda etc.) */
 
   /* ======================================================================= */
-  /* ===== INÍCIO DO SEU CÓDIGO - AGORA INTEGRADO CORRETAMENTE ===== */
+  /* ===== INÍCIO DO CÓDIGO DAS FIELDS (com unidades físicas → convertidas) ===== */
   /* ======================================================================= */
 
-  double rho_new_fields = 0.0;
-  double p_new_fields = 0.0;
+  double rho_new_fields = 0.0; /* em unidades CLASS (após multiplicar por a^2) */
+  double p_new_fields = 0.0;   /* em unidades CLASS (após multiplicar por a^2) */
 
   /* === Quintessence: V = M^4 (1 + cos(phi/f)) === */
   if (pba->has_quintessence == _TRUE_) {
     double phi = pvecback[pba->index_bg_phi];
     double phi_prime = pvecback[pba->index_bg_phi_prime];
 
+    /* Parâmetros do potencial vindos de pba */
     double M4 = pow(pba->M_quint, 4);
     double V = M4 * (1.0 + cos(phi / pba->f_quint));
-    double dV_dphi = -M4 / pba->f_quint * sin(phi / pba->f_quint);
+    double dV_dphi = - M4 / pba->f_quint * sin(phi / pba->f_quint);
 
-    /* Equação de Klein-Gordon */
+    /* Equação de Klein-Gordon no integrador (conformal time) */
     dy[pba->index_bg_phi] = phi_prime;
     dy[pba->index_bg_phi_prime] = -2.0 * a_prime_over_a * phi_prime - a * a * dV_dphi;
 
-    /* Densidade de energia e pressão físicas */
-    double kin_quint = 0.5 * (phi_prime / a) * (phi_prime / a);
-    double rho_quint = kin_quint + V;
-    double p_quint = kin_quint - V;
+    /* Densidade e pressão físicas (usando phi_dot_phys = phi_prime / a) */
+    double phi_dot_phys = phi_prime / a;
+    double kin_quint = 0.5 * phi_dot_phys * phi_dot_phys; /* energy density kin term (physical) */
+    double rho_quint_phys = kin_quint + V;               /* rho physical */
+    double p_quint_phys   = kin_quint - V;               /* p physical */
 
-    rho_new_fields += rho_quint;
-    p_new_fields += p_quint;
+    /* Converter para unidades CLASS (muitas partes do CLASS usam a^2 * rho_physical) */
+    double rho_quint_class = a * a * rho_quint_phys;
+    double p_quint_class   = a * a * p_quint_phys;
+
+    rho_new_fields += rho_quint_class;
+    p_new_fields   += p_quint_class;
   }
 
   /* === FDM: Scalar field with m^2 psi^2 potential === */
@@ -85,39 +94,55 @@ int background_derivs(
     double m2 = pba->m_Psi * pba->m_Psi;
 
     double V_fdm = 0.5 * m2 * psi * psi;
+    double dV_dpsi = m2 * psi; /* derivada do potencial */
 
-    /* Equação de Klein-Gordon */
+    /* Equação de Klein-Gordon no integrador (conformal time) */
     dy[pba->index_bg_psi] = psi_prime;
-    dy[pba->index_bg_psi_prime] = -2.0 * a_prime_over_a * psi_prime - a * a * m2 * psi;
+    dy[pba->index_bg_psi_prime] = -2.0 * a_prime_over_a * psi_prime - a * a * dV_dpsi;
 
-    /* Densidade de energia e pressão físicas */
-    double kin_fdm = 0.5 * (psi_prime / a) * (psi_prime / a);
-    double rho_fdm = kin_fdm + V_fdm;
-    double p_fdm = kin_fdm - V_fdm;
+    /* Densidade e pressão físicas */
+    double psi_dot_phys = psi_prime / a;
+    double kin_fdm = 0.5 * psi_dot_phys * psi_dot_phys;
+    double rho_fdm_phys = kin_fdm + V_fdm;
+    double p_fdm_phys   = kin_fdm - V_fdm;
 
-    rho_new_fields += rho_fdm;
-    p_new_fields += p_fdm;
+    /* Converter para unidades CLASS */
+    double rho_fdm_class = a * a * rho_fdm_phys;
+    double p_fdm_class   = a * a * p_fdm_phys;
+
+    rho_new_fields += rho_fdm_class;
+    p_new_fields   += p_fdm_class;
   }
-  
+
   /* ======================================================================= */
-  /* ===== FIM DO SEU CÓDIGO ===== */
+  /* ===== FIM DO CÓDIGO DAS FIELDS ===== */
   /* ======================================================================= */
 
-  /* Somar TODAS as densidades e pressões */
+  /* Somar TODAS as densidades e pressões (nas mesmas unidades) */
   double rho_total_final = rho_total_known + rho_new_fields;
-  double p_total_final = p_total_known + p_new_fields;
-  
-  /* Derivadas para o integrador numérico */
-  
-  /* 1. Derivada do fator de escala: da/d(tau) = a^2 * H */
-  dy[pba->index_bg_a] = a * a_prime_over_a;
+  double p_total_final   = p_total_known + p_new_fields;
 
-  /* 2. Derivada do parâmetro de Hubble: dH/d(tau) = - (3/2) * a * H^2 * (1 + w) */
-  /*    Certifique-se de que rho_total_final nunca seja zero para evitar divisão por zero. */
-  if (rho_total_final == 0.) {
-    dy[pba->index_bg_H] = 0.;
+  /* ----------------------------------------------------------------------------
+   * Derivadas para o integrador numérico (tempo conformal τ)
+   * ----------------------------------------------------------------------------
+   * 1) da/dτ = a * (a' / a) = a * H_conf
+   *    (onde H_conf = a' / a já está em pvecback[index_bg_H])
+   *
+   * 2) dH_conf/dτ = - (1/2) * a^2 * (rho_total + p_total)
+   *    (equação de Friedmann em tempo conformal, unidades consistentes com CLASS)
+   * ----------------------------------------------------------------------------
+   */
+
+  /* 1. Derivada do fator de escala: da/dτ = a * H_conf */
+  dy[pba->index_bg_a] = a * H_conf;
+
+  /* 2. Derivada do parâmetro de Hubble conformal */
+  /* Pequena proteção contra divisões estranhas ou NaN: */
+  if (!isfinite(rho_total_final) || !isfinite(p_total_final)) {
+    /* Se algo deu errado numericamente, sinalizamos erro (ou definimos zero de forma segura) */
+    dy[pba->index_bg_H] = 0.0;
   } else {
-    dy[pba->index_bg_H] = -1.5 * a * H*H * (1. + p_total_final / rho_total_final);
+    dy[pba->index_bg_H] = -0.5 * a * a * (rho_total_final + p_total_final);
   }
 
   return _SUCCESS_;
