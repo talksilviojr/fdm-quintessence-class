@@ -1,150 +1,236 @@
 /**************************************************************************************************/
-/*                      background_derivs - versão funcional para CLASS (corrigida)               */
-/*                                Autor: Silvio Antonio Corrêa Junior                             */
+/*                      background_derivs – versão ajustada para convenções do CLASS             */
+/*                           Autor original: Silvio Antonio Correa Junior      */
 /**************************************************************************************************/
 
 #include <math.h>
+#include <stdio.h>
+#include "background.h"
 
-/* Assume que struct background, ErrorMsg, _TRUE_, _SUCCESS_ e os index_bg_* já estão definidos
-   conforme o restante do código/CLASS. */
-
+/* A assinatura correta que o CLASS espera inclui 'tau' (tempo conformal). */
 int background_derivs(
-    const double * pvecback,
-    double * dy,
+    double tau,
+    const double * pvecback, /* vetor de valores background */
+    double * dy,             /* derivadas (a preencher) */
     void * pba_void,
     ErrorMsg error_message
-) {
+){
   struct background * pba = (struct background *) pba_void;
 
-  /* Variáveis locais */
-  double a  = pvecback[pba->index_bg_a];
-  double Hc = pvecback[pba->index_bg_H];   /* Hubble conformal: a'/a */
+  /* Inicializações defensivas: preenche dy com zeros para evitar lixo em saída */
+  if (dy != NULL) {
+    for (int i = 0; i < pba->bg_size; i++) dy[i] = 0.0;
+  }
 
-  /* Proteções básicas */
-  if (!(isfinite(a) && a > 0.0 && isfinite(Hc))) {
-    dy[pba->index_bg_a] = 0.0;
-    dy[pba->index_bg_H] = 0.0;
+  /* ---------------------------------------------------------------------- */
+  /*                   Recupera variáveis de background                     */
+  /* ---------------------------------------------------------------------- */
+
+  /* índice 'index_bg_a' e 'index_bg_H' devem existir na estrutura pba.
+     Aqui assumimos que index_bg_H refere-se ao Hubble *conformal* Hc = a'/a.
+     Ajuste os nomes/índices se teu fork usar outra convenção. */
+  double a;
+  double Hc;
+  if (pba->index_bg_a < 0 || pba->index_bg_H < 0) {
+    class_store_error(error_message, "background_derivs: índices index_bg_a/index_bg_H não definidos.");
+    return _FAILURE_;
+  }
+  a  = pvecback[pba->index_bg_a];
+  Hc = pvecback[pba->index_bg_H];
+
+  /* Proteções iniciais */
+  if (!isfinite(a) || a <= 0.0 || !isfinite(Hc)) {
+    /* define derivadas seguras e retorna sucesso para permitir que chamador trate */
+    if (dy != NULL) {
+      dy[pba->index_bg_a] = 0.0;
+      dy[pba->index_bg_H] = 0.0;
+    }
     return _SUCCESS_;
   }
 
-  /* Potências úteis de a */
-  double a2 = a * a;
-  double a3 = a2 * a;
-  double a4 = a2 * a2;
+  double a2 = a*a;
+  double a4 = a2*a2;
 
-  /* Densidades/pressões físicas (sem fator a^2) */
-  double rho_total_known = 0.0;
-  double p_total_known   = 0.0;
+  /* ---------------------------------------------------------------------- */
+  /*                     Densidades "tilde" (a^4 * rho)                     */
+  /* ---------------------------------------------------------------------- */
 
-  /* Convenção típica do CLASS: rho_c0 = 3 H0^2 (com 8πG = 1) */
-  double rho_c0 = 3.0 * pba->H0 * pba->H0;
+  double rho_tilde = 0.0;
+  double p_tilde   = 0.0;
 
-  /* Radiação (g), baryons (b), CDM (cdm), relativistic (ur) */
-  if (pba->has_g == _TRUE_) {
-    double rho_g = pba->Omega0_g * rho_c0 / a4;
-    rho_total_known += rho_g;
-    p_total_known   += (1.0/3.0) * rho_g;
-  }
-  if (pba->has_b == _TRUE_) {
-    double rho_b = pba->Omega0_b * rho_c0 / a3;
-    rho_total_known += rho_b;
-    /* p_b = 0 */
-  }
-  if (pba->has_cdm == _TRUE_) {
-    double rho_cdm = pba->Omega0_cdm * rho_c0 / a3;
-    rho_total_known += rho_cdm;
-    /* p_cdm = 0 */
-  }
-  if (pba->has_ur == _TRUE_) {
-    double rho_ur = pba->Omega0_ur * rho_c0 / a4;
-    rho_total_known += rho_ur;
-    p_total_known   += (1.0/3.0) * rho_ur;
+  /* rho_c0 = 3 H0^2 / (8πG) — o CLASS geralmente usa 8πG = 1 em muitas versões.
+     Aqui implementamos um cálculo que respeita um eventual pba->G se ele existir,
+     senão usamos o fallback 3*H0^2 (como em muitos forks). Ajuste conforme teu projeto. */
+  double rho_c0 = 0.0;
+#ifdef HAS_PBA_G
+  /* Se a estrutura tiver G armazenado (nome ilustrativo), usaríamos: */
+  rho_c0 = 3.0 * pba->H0 * pba->H0 / (8.0 * M_PI * pba->G);
+#else
+  /* Fallback: assumir unidades com 8πG = 1 (mantido para compatibilidade com muitos códigos). */
+  rho_c0 = 3.0 * pba->H0 * pba->H0;
+#endif
+
+  /* ---------------------------------------------------------------------- */
+  /*                            Radiação: g                                  */
+  /* ---------------------------------------------------------------------- */
+  if (pba->has_g == _TRUE_){
+    /* para radiação: rho(a) = rho0 * a^{-4} -> a^4 rho(a) = rho0 (constante) */
+    double rt = pba->Omega0_g * rho_c0;       /* a^4 * rho_g (constante) */
+    rho_tilde += rt;
+    p_tilde   += rt/3.0;
   }
 
-  /* Termo cosmológica (Λ) — entra em rho, mas (rho + p) = 0, não afeta Hc' */
-  if (pba->has_lambda == _TRUE_) {
-    double rho_lambda = pba->Omega0_lambda * rho_c0; /* constante no tempo */
-    rho_total_known += rho_lambda;
-    /* p_lambda = -rho_lambda => não adiciona em (rho+p) */
+  /* ---------------------------------------------------------------------- */
+  /*                         Baryons: b                                     */
+  /* ---------------------------------------------------------------------- */
+  if (pba->has_b == _TRUE_){
+    /* matéria não-relativística: rho(a) = rho0 * a^{-3} -> a^4 rho(a) = a * rho0 */
+    double rt = pba->Omega0_b * rho_c0 * a;   /* a^4 * rho_b = a * rho0_b */
+    rho_tilde += rt;
+    /* pressão ≈ 0 -> p_tilde não incrementa */
   }
 
-  /* ncdm (neutrinos massivos) – se disponível como background simples (aproximação) */
+  /* ---------------------------------------------------------------------- */
+  /*                           CDM: cdm                                     */
+  /* ---------------------------------------------------------------------- */
+  if (pba->has_cdm == _TRUE_){
+    double rt = pba->Omega0_cdm * rho_c0 * a; /* a^4 * rho_cdm = a * rho0_cdm */
+    rho_tilde += rt;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /*                    Relativistic massless: ur                           */
+  /* ---------------------------------------------------------------------- */
+  if (pba->has_ur == _TRUE_){
+    /* como radiação: a^4 * rho_ur = constante = rho0_ur */
+    double rt = pba->Omega0_ur * rho_c0;
+    rho_tilde += rt;
+    p_tilde   += rt/3.0;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /*                  Energia escura Λ (constante cosmológica)              */
+  /* ---------------------------------------------------------------------- */
+  if (pba->has_lambda == _TRUE_){
+    /* cosmological constant: rho(a) = rho0 (constante) -> a^4 rho = a^4 * rho0 */
+    double rt = pba->Omega0_lambda * rho_c0 * a4;  /* a^4 * rho_lambda */
+    rho_tilde += rt;
+    p_tilde   -= rt;  /* p = -rho -> a^4 p = - a^4 rho */
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /*                         Neutrinos massivos ncdm                        */
+  /* ---------------------------------------------------------------------- */
+
   if (pba->has_ncdm == _TRUE_) {
-    /* Se houver um método/valor de rho_ncdm(a) pronto no pba, use-o aqui.
-       Caso contrário, remova este bloco ou substitua pelo seu cálculo. */
-    double rho_ncdm = 0.0;
-    double p_ncdm   = 0.0;
-    /* Exemplo (placeholder): pba->rho_ncdm_of_a(a, &rho_ncdm, &p_ncdm); */
-    rho_total_known += rho_ncdm;
-    p_total_known   += p_ncdm;
+    /* Verificações defensivas: os arrays rho_ncdm_bg e p_ncdm_bg devem existir e ter N_ncdm elementos.
+       Estes vetores costumam ser preenchidos por outra rotina do módulo ncdm;
+       aqui fazemos checks para evitar segmentation faults. */
+    double rt = 0.0;
+    double pt = 0.0;
+
+    if (pba->N_ncdm > 0 && pba->rho_ncdm_bg != NULL && pba->p_ncdm_bg != NULL) {
+      for (int i = 0; i < pba->N_ncdm; i++){
+        /* Espera-se que cada elemento já seja a^4 * rho_ncdm e a^4 * p_ncdm */
+        if (!isfinite(pba->rho_ncdm_bg[i]) || !isfinite(pba->p_ncdm_bg[i])) {
+          class_store_error(error_message, "background_derivs: rho_ncdm_bg/p_ncdm_bg contém NaN/Inf.");
+          return _FAILURE_;
+        }
+        rt += pba->rho_ncdm_bg[i];
+        pt += pba->p_ncdm_bg[i];
+      }
+    }
+    else {
+      /* Se não houver dados, podemos optar por emitir um aviso (não-fatal) ou simplesmente ignorar.
+         Aqui apenas não somamos nada (equivalente a não ter ncdm). */
+    }
+
+    rho_tilde += rt;
+    p_tilde   += pt;
   }
 
-  /* ======================================================================= */
-  /* ======================== CAMPOS ESCALARES CANÔNICOS ==================== */
-  /* ======================================================================= */
+  /* ---------------------------------------------------------------------- */
+  /*                    CAMPOS ESCALARES CANÔNICOS                          */
+  /* ---------------------------------------------------------------------- */
 
-  double rho_new_fields = 0.0; /* físicas */
-  double p_new_fields   = 0.0; /* físicas */
+  /* ========================= QUINTESSENCE =============================== */
 
-  /* Quintessence: V = M^4 (1 + cos(phi/f)) */
   if (pba->has_quintessence == _TRUE_) {
+
+    /* Verificações de índices */
+    if (pba->index_bg_phi < 0 || pba->index_bg_phi_prime < 0) {
+      class_store_error(error_message, "background_derivs: índices do campo quintessence não definidos.");
+      return _FAILURE_;
+    }
+
     double phi       = pvecback[pba->index_bg_phi];
     double phi_prime = pvecback[pba->index_bg_phi_prime];
 
-    double M4      = pow(pba->M_quint, 4);
-    double inv_f   = 1.0 / pba->f_quint;
-    double V       = M4 * (1.0 + cos(phi * inv_f));
-    double dV_dphi = - M4 * inv_f * sin(phi * inv_f);
+    /* Parâmetros do potencial: assumimos M_quint e f_quint definidos em pba */
+    double M4  = pow(pba->M_quint, 4);
+    double invf = 1.0 / pba->f_quint;
 
-    /* Equações em tempo conformal */
-    dy[pba->index_bg_phi]        = phi_prime;
-    dy[pba->index_bg_phi_prime]  = -2.0 * Hc * phi_prime - a2 * dV_dphi;
+    double V = M4 * (1.0 + cos(phi * invf));
+    double dV_dphi = - M4 * invf * sin(phi * invf);
 
-    /* Densidade/pressão físicas (sem multiplicar por a^2 aqui) */
-    double phi_dot   = phi_prime / a;
-    double kin_quint = 0.5 * phi_dot * phi_dot;
-    double rho_quint = kin_quint + V;
-    double p_quint   = kin_quint - V;
+    /* Equações em tempo conformal (Hc = a'/a) */
+    dy[pba->index_bg_phi] = phi_prime;
+    dy[pba->index_bg_phi_prime] =
+        -2.0 * Hc * phi_prime - a2 * dV_dphi;
 
-    rho_new_fields += rho_quint;
-    p_new_fields   += p_quint;
+    /* Densidades tilde: kin ~ a^2 φ'^2 /2, V_tilde ~ a^4 V */
+    double kin_tilde = 0.5 * a2 * phi_prime * phi_prime;
+    double V_tilde   = a4 * V;
+
+    rho_tilde += kin_tilde + V_tilde;
+    p_tilde   += kin_tilde - V_tilde;
   }
 
-  /* FDM: V = (1/2) m^2 psi^2 */
+  /* ============================== FDM =================================== */
+
   if (pba->has_fdm == _TRUE_) {
+
+    if (pba->index_bg_psi < 0 || pba->index_bg_psi_prime < 0) {
+      class_store_error(error_message, "background_derivs: índices do campo FDM não definidos.");
+      return _FAILURE_;
+    }
+
     double psi       = pvecback[pba->index_bg_psi];
     double psi_prime = pvecback[pba->index_bg_psi_prime];
 
-    double m2      = pba->m_Psi * pba->m_Psi;
-    double V_fdm   = 0.5 * m2 * psi * psi;
+    double m2 = pba->m_Psi * pba->m_Psi;
+
+    double V = 0.5 * m2 * psi * psi;
     double dV_dpsi = m2 * psi;
 
-    /* Equações em tempo conformal */
-    dy[pba->index_bg_psi]        = psi_prime;
-    dy[pba->index_bg_psi_prime]  = -2.0 * Hc * psi_prime - a2 * dV_dpsi;
+    dy[pba->index_bg_psi] = psi_prime;
+    dy[pba->index_bg_psi_prime] =
+        -2.0 * Hc * psi_prime - a2 * dV_dpsi;
 
-    /* Densidade/pressão físicas */
-    double psi_dot   = psi_prime / a;
-    double kin_fdm   = 0.5 * psi_dot * psi_dot;
-    double rho_fdm   = kin_fdm + V_fdm;
-    double p_fdm     = kin_fdm - V_fdm;
+    double kin_tilde = 0.5 * a2 * psi_prime * psi_prime;
+    double V_tilde   = a4 * V;
 
-    rho_new_fields += rho_fdm;
-    p_new_fields   += p_fdm;
+    rho_tilde += kin_tilde + V_tilde;
+    p_tilde   += kin_tilde - V_tilde;
   }
 
-  /* Soma total física */
-  double rho_total = rho_total_known + rho_new_fields;
-  double p_total   = p_total_known   + p_new_fields;
+  /* ---------------------------------------------------------------------- */
+  /*                       Equações finais para a e Hc                      */
+  /* ---------------------------------------------------------------------- */
 
-  /* Derivadas de a e Hc */
+  /* a' = a * Hc (tempo conformal) */
   dy[pba->index_bg_a] = a * Hc;
 
-  if (!(isfinite(rho_total) && isfinite(p_total))) {
+  /* Proteção final: se rho_tilde ou p_tilde não-numéricos, define H' = 0 e retorna. */
+  if (!isfinite(rho_tilde) || !isfinite(p_tilde)) {
     dy[pba->index_bg_H] = 0.0;
-  } else {
-    /* Hc' = - (1/2) a^2 (rho + p), com 8πG = 1 */
-    dy[pba->index_bg_H] = -0.5 * a2 * (rho_total + p_total);
+    /* podemos também colocar uma mensagem não-fatal */
+    return _SUCCESS_;
+  }
+  else {
+    /* FORMATO (tempo conformal):
+       Hc' = -0.5 * (a^4 rho + a^4 p) = -0.5 * (rho_tilde + p_tilde) */
+    dy[pba->index_bg_H] = -0.5 * (rho_tilde + p_tilde);
   }
 
   return _SUCCESS_;
