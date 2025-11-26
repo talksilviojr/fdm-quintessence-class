@@ -76,10 +76,9 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
     .metric:hover { transform: translateY(-10px); box-shadow: 0 16px 40px rgba(0, 212, 255, 0.3); }
-
-    /* AJUSTE PEDIDO – AUMENTAR FONTE DAS MÉTRICAS */
+    
     .value { 
-      font-size: 4.5rem;   /* Aumentado do 3rem original */
+      font-size: 4.5rem; 
       font-weight: 700; 
       color: var(--success); 
       font-family: 'JetBrains Mono', monospace; 
@@ -217,9 +216,9 @@
   <ul class="nav-links">
     <li><a href="#overview" class="active">Visão Geral</a></li>
     <li><a href="#results">Resultados</a></li>
+    <li><a href="#plots">Gráficos</a></li>
     <li><a href="#install">Instalação</a></li>
     <li><a href="#run">Executar</a></li>
-    <li><a href="#pubs">Publicações</a></li>
   </ul>
 </nav>
 
@@ -238,9 +237,6 @@
       <span class="badge">Código Aberto</span>
       <span class="badge">MIT License</span>
       <span class="badge">Reprodutível</span>
-
-      <!-- Badge REMOVIDA aqui -->
-      <!-- <span class="badge">JMP25-AR-02036</span> -->
     </div>
   </section>
 
@@ -253,6 +249,41 @@
       </p>
     </div>
   </section>
+
+
+  <!-- ===========================
+       NOVOS GRÁFICOS AQUI
+       =========================== -->
+
+  <section id="plots" class="section">
+    <h2>Gráficos Adicionais</h2>
+
+    <!-- w(a) -->
+    <div class="plot-container">
+      <div id="wa-plot"></div>
+      <p style="text-align:center; color:var(--text-light); margin-top:1rem;">
+        <em>w(a) — comportamento thawing</em>
+      </p>
+    </div>
+
+    <!-- P(k) -->
+    <div class="plot-container">
+      <div id="pk-plot"></div>
+      <p style="text-align:center; color:var(--text-light); margin-top:1rem;">
+        <em>P(k) — supressão FDM+Q em pequenas escalas</em>
+      </p>
+    </div>
+
+    <!-- ρ(a) -->
+    <div class="plot-container">
+      <div id="rho-plot"></div>
+      <p style="text-align:center; color:var(--text-light); margin-top:1rem;">
+        <em>Evolução das densidades normalizadas</em>
+      </p>
+    </div>
+
+  </section>
+
 
   <section id="install" class="section">
     <h2>Instalação</h2>
@@ -273,13 +304,6 @@ make
     <p>Saída: <code>S₈ = 0.792</code> | <code>w₀ = -0.918</code></p>
   </section>
 
-  <section id="pubs" class="section">
-    <h2>Publicações</h2>
-    <ul style="margin: 1.5rem 0; padding-left: 2rem;">
-      <li>Aguardando submissão formal</li>
-    </ul>
-  </section>
-
 </main>
 
 <footer>
@@ -287,6 +311,7 @@ make
 </footer>
 
 <script>
+  /* ESTRELAS */
   const starsContainer = document.getElementById('stars');
   for (let i = 0; i < 150; i++) {
     const star = document.createElement('div');
@@ -298,6 +323,7 @@ make
     starsContainer.appendChild(star);
   }
 
+  /* S8 PLOT */
   Plotly.newPlot('s8-plot', [
     { x: [1e-24, 1e-22], y: [0.832, 0.832], name: 'ΛCDM', line: { color: '#ff6b6b', dash: 'dash' } },
     { x: [1e-24, 1e-23, 1e-22], y: [0.828, 0.805, 0.792], name: 'FDM+Q', mode: 'lines+markers', line: { color: '#00d4ff' } }
@@ -308,8 +334,82 @@ make
     font: { color: '#94a3b8' },
     xaxis: { title: 'm_Ψ [eV]', type: 'log' },
     yaxis: { title: 'S₈', range: [0.77, 0.84] }
-  }, { responsive: true });
+  });
 
+  /* w(a) */
+  Plotly.newPlot('wa-plot', [{
+      x: [0.1, 0.2, 0.3, 0.5, 0.7, 1.0],
+      y: [-0.995, -0.992, -0.985, -0.97, -0.94, -0.918],
+      mode: "lines+markers",
+      name: "FDM+Q",
+      line: { width: 4 }
+  }], {
+      title: "w(a) – quintessência dinâmica",
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#94a3b8' },
+      xaxis: { title: "a (scale factor)" },
+      yaxis: { title: "w(a)", range: [-1.05, -0.85] }
+  });
+
+  /* P(k) */
+  Plotly.newPlot('pk-plot', [
+    {
+      x: [1e-3, 1e-2, 1e-1, 1],
+      y: [1, 1, 1, 1],
+      name: "ΛCDM",
+      mode: "lines",
+      line: { dash: "dash", width: 3 }
+    },
+    {
+      x: [1e-3, 1e-2, 1e-1, 1],
+      y: [1, 0.95, 0.75, 0.30],
+      name: "FDM+Q",
+      mode: "lines+markers",
+      line: { width: 4 }
+    }
+  ], {
+    title: "P(k) — supressão em pequenas escalas",
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#94a3b8' },
+    xaxis: { title: "k [h/Mpc]", type: "log" },
+    yaxis: { title: "P(k) / P_LCDM" }
+  });
+
+  /* ρ(a) */
+  Plotly.newPlot('rho-plot', [
+    {
+      x: [1e-4, 1e-3, 1e-2, 1e-1, 1],
+      y: [1e8, 1e6, 1e4, 100, 1],
+      name: "Radiação",
+      mode: "lines",
+      line: { width: 3 }
+    },
+    {
+      x: [1e-4, 1e-3, 1e-2, 1e-1, 1],
+      y: [1e4, 1e3, 100, 10, 1],
+      name: "Matéria",
+      mode: "lines",
+      line: { width: 3 }
+    },
+    {
+      x: [1e-4, 1e-3, 1e-2, 1e-1, 1],
+      y: [0.1, 0.1, 0.2, 0.5, 1],
+      name: "Quintessência",
+      mode: "lines",
+      line: { width: 4 }
+    }
+  ], {
+    title: "Evolução das densidades normalizadas — ρ(a)",
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { color: '#94a3b8' },
+    xaxis: { title: "a (scale factor)", type: "log" },
+    yaxis: { title: "ρ(a) — normalizado", type: "log" }
+  });
+
+  /* Navegação suave */
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
@@ -323,3 +423,4 @@ make
 
 </body>
 </html>
+
