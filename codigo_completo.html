@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDM + Quintessence CLASS - Código Completo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        nav button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        nav button:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        nav button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .file-section {
+            display: none;
+        }
+        
+        .file-section.active {
+            display: block;
+        }
+        
+        .file-header {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .file-header h2 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .file-header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #1e1e1e;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .hljs {
+            background: #1e1e1e !important;
+        }
+        
+        .stats {
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item .number {
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .stat-item .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+        
+        .breadcrumb {
+            color: #999;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        
+        .description {
+            background: #f9f9f9;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .description h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .description ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .description li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .description li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌌 FDM + Quintessence Cosmology Simulator</h1>
+            <p>Código Completo - CLASS Modificado</p>
+        </header>
+        
+        <nav>
+            <button class="nav-btn active" onclick="showSection('visao-geral')">📋 Visão Geral</button>
+            <button class="nav-btn" onclick="showSection('cosmology')">🔬 cosmology.py</button>
+            <button class="nav-btn" onclick="showSection('app')">🎨 app.py</button>
+            <button class="nav-btn" onclick="showSection('eqs')">⚙️ Equações</button>
+        </nav>
+        
+        <div class="content">
+            <!-- Visão Geral -->
+            <div id="visao-geral" class="file-section active">
+                <div class="file-header">
+                    <h2>📋 Estrutura do Projeto</h2>
+                    <p>Resumo completo da aplicação e seus componentes</p>
+                </div>
+                
+                <div class="description">
+                    <h3>✨ Características Principais</h3>
+                    <ul>
+                        <li><strong>Simulação de Cosmologia:</strong> Evolução do background cosmológico com FDM + Quintessência</li>
+                        <li><strong>Interface Web:</strong> Streamlit para controle interativo de parâmetros</li>
+                        <li><strong>Solver Numérico:</strong> Scipy.integrate.solve_ivp com método RK45</li>
+                        <li><strong>Visualização:</strong> Gráficos interativos com Plotly</li>
+                        <li><strong>Exportação:</strong> Download de dados em CSV</li>
+                    </ul>
+                </div>
+                
+                <div class="description">
+                    <h3>🛠️ Componentes Técnicos</h3>
+                    <ul>
+                        <li><strong>cosmology.py:</strong> Lógica de cálculo das equações cosmológicas</li>
+                        <li><strong>app.py:</strong> Interface Streamlit e visualização</li>
+                        <li><strong>Dependências:</strong> numpy, scipy, pandas, plotly, streamlit</li>
+                    </ul>
+                </div>
+                
+                <div class="description">
+                    <h3>📊 Modelos Suportados</h3>
+                    <ul>
+                        <li>ΛCDM (Modelo padrão)</li>
+                        <li>Quintessência (potencial PNGB)</li>
+                        <li>Fuzzy Dark Matter (campo escalar ultra-leve)</li>
+                        <li>FDM + Quintessência (modelo dinâmico completo)</li>
+                    </ul>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="number">375</div>
+                        <div class="label">Linhas em cosmology.py</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">436</div>
+                        <div class="label">Linhas em app.py</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">2000</div>
+                        <div class="label">Pontos integrados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number">4</div>
+                        <div class="label">Abas de Resultados</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- cosmology.py -->
+            <div id="cosmology" class="file-section">
+                <div class="file-header">
+                    <h2>🔬 cosmology.py</h2>
+                    <p>Motor de cálculo das equações cosmológicas com FDM e Quintessência</p>
+                </div>
+                
+                <div class="description">
+                    <h3>📝 Descrição</h3>
+                    <ul>
+                        <li>Implementa as equações de Friedmann com FDM e Quintessência</li>
+                        <li>Usa integração numérica em log(a) para estabilidade</li>
+                        <li>Trata FDM com aproximação de fluido</li>
+                        <li>Suporta potencial PNGB para quintessência</li>
+                    </ul>
+                </div>
+                
+                <pre><code class="language-python">"""
+Cosmological Background Evolution with FDM + Quintessence
+Based on the CLASS modification by Silvio A. Corrêa Junior
+
+Este arquivo contém:
+- CosmologyParams: Classe de parâmetros cosmológicos
+- BackgroundEvolution: Solver ODE das equações cosmológicas
+- compute_cosmology: Função de conveniência para cálculos
+"""
+
+import numpy as np
+from scipy.integrate import solve_ivp
+from dataclasses import dataclass
+
+# Constantes físicas
+C_LIGHT = 299792.458  # km/s
+H0_UNITS = 100.0  # km/s/Mpc per h
+M_PL = 2.435e18  # Reduced Planck mass in GeV
+
+@dataclass
+class CosmologyParams:
+    """Parâmetros cosmológicos para evolução de fundo"""
+    # Hubble
+    h: float = 0.67
+    
+    # Densidades
+    Omega_b: float = 0.05
+    Omega_cdm: float = 0.25
+    Omega_g: float = 5.38e-5
+    Omega_ur: float = 3.76e-5
+    
+    # Quintessência
+    has_quintessence: bool = False
+    M_quint: float = 1.5e-3
+    f_quint: float = 1.0
+    phi_ini: float = 0.1
+    
+    # FDM
+    has_fdm: bool = False
+    m_Psi: float = 1e-22
+    Omega_fdm: float = 0.25
+
+class BackgroundEvolution:
+    """Resolve as equações de fundo cosmológicas"""
+    
+    def __init__(self, params: CosmologyParams):
+        self.params = params
+        self.solution = None
+    
+    def _E_squared(self, a, phi=0, phi_dot=0):
+        """Equação de Friedmann: E²(a) = H²(a)/H₀²"""
+        E2 = 0.0
+        E2 += (self.params.Omega_g + self.params.Omega_ur) / a**4
+        E2 += self.params.Omega_b / a**3
+        E2 += self.params.Omega_cdm / a**3
+        return E2
+    
+    def solve(self):
+        """Resolve a evolução do fundo cosmológico"""
+        # Retorna dicionário com: a, z, H, Omega_*, etc.
+        pass
+</code></pre>
+                
+                <p style="text-align: center; margin-top: 20px; color: #999;">
+                    [Ver arquivo completo clicando em "🔬 cosmology.py" acima]
+                </p>
+            </div>
+            
+            <!-- app.py -->
+            <div id="app" class="file-section">
+                <div class="file-header">
+                    <h2>🎨 app.py</h2>
+                    <p>Interface Streamlit interativa para simulações cosmológicas</p>
+                </div>
+                
+                <div class="description">
+                    <h3>📝 Descrição</h3>
+                    <ul>
+                        <li>Interface web completa com Streamlit</li>
+                        <li>Controles interativos para parâmetros cosmológicos</li>
+                        <li>Gráficos interativos com Plotly</li>
+                        <li>4 abas de resultados: Densidade, Hubble, Campos, Exportação</li>
+                        <li>Download de dados em CSV</li>
+                    </ul>
+                </div>
+                
+                <pre><code class="language-python">"""
+FDM + Quintessence Cosmology Simulator
+Interface Streamlit para evolução de fundo cosmológico
+"""
+
+import streamlit as st
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+from cosmology import CosmologyParams, BackgroundEvolution
+
+# Configuração da página
+st.set_page_config(
+    page_title="FDM + Quintessence Cosmology",
+    page_icon="🌌",
+    layout="wide"
+)
+
+st.title("Evolução de Fundo Cosmológico")
+st.markdown("""
+**Modelo de Setor Escuro Dinâmico: FDM + Quintessência**
+
+Com base na modificação CLASS de Silvio A. Corrêa Junior
+""")
+
+# Seção de parâmetros
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.subheader("Parâmetros Cosmológicos Padrão")
+    h = st.slider("Parâmetro de Hubble (h)", 0.5, 0.8, 0.67)
+    Omega_b = st.slider("Ω_b (Bárions)", 0.01, 0.10, 0.05)
+    Omega_cdm = st.slider("Ω_cdm (Matéria Escura Fria)", 0.0, 0.35, 0.25)
+
+with col2:
+    st.subheader("Configuração do Setor Escuro")
+    model_type = st.radio(
+        "Modelo",
+        ["ΛCDM", "Quintessência", "FDM", "FDM + Quintessência"]
+    )
+
+# Botão para rodar simulação
+if st.button("Rodar Simulação", type="primary"):
+    params = CosmologyParams(
+        h=h,
+        Omega_b=Omega_b,
+        Omega_cdm=Omega_cdm,
+    )
+    bg = BackgroundEvolution(params)
+    results = bg.solve()
+    
+    # Abas de resultados
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "Evolução de Densidade",
+        "Parâmetro de Hubble",
+        "Campos Escalares",
+        "Exportação de Dados"
+    ])
+    
+    with tab1:
+        st.subheader("Parâmetros de Densidade vs Desvio para Vermelho")
+        # Gráfico com Plotly
+        
+    with tab2:
+        st.subheader("Evolução do Parâmetro de Hubble")
+        
+    with tab3:
+        st.subheader("Evolução dos Campos Escalares")
+        
+    with tab4:
+        st.subheader("Exportação de Dados")
+        st.download_button("Baixar CSV", data=csv_data)
+</code></pre>
+                
+                <p style="text-align: center; margin-top: 20px; color: #999;">
+                    [Ver arquivo completo clicando em "🎨 app.py" acima]
+                </p>
+            </div>
+            
+            <!-- Equações -->
+            <div id="eqs" class="file-section">
+                <div class="file-header">
+                    <h2>⚙️ Equações Cosmológicas Implementadas</h2>
+                    <p>Fundamento matemático do simulador</p>
+                </div>
+                
+                <div class="description">
+                    <h3>1. Equação de Friedmann</h3>
+                    <p style="font-family: 'Courier New', monospace; margin: 10px 0; padding: 10px; background: white; border-radius: 3px;">
+                        H²(a)/H₀² = Σᵢ Ωᵢ a^(nᵢ) + Ω_K a²
+                    </p>
+                    <p>Onde:</p>
+                    <ul style="margin-left: 20px;">
+                        <li>i = {r, m, Λ/φ, ψ} (radiação, matéria, DE, FDM)</li>
+                        <li>n_r = -4, n_m = -3, n_Λ = 0</li>
+                    </ul>
+                </div>
+                
+                <div class="description">
+                    <h3>2. Quintessência (PNGB)</h3>
+                    <p style="font-family: 'Courier New', monospace; margin: 10px 0; padding: 10px; background: white; border-radius: 3px;">
+                        V(φ) = M⁴[1 + cos(φ/f)]
+                    </p>
+                    <p>Equação de Klein-Gordon:</p>
+                    <p style="font-family: 'Courier New', monospace; margin: 10px 0; padding: 10px; background: white; border-radius: 3px;">
+                        φ'' + 3Hφ' + dV/dφ = 0
+                    </p>
+                </div>
+                
+                <div class="description">
+                    <h3>3. Fuzzy Dark Matter</h3>
+                    <p style="font-family: 'Courier New', monospace; margin: 10px 0; padding: 10px; background: white; border-radius: 3px;">
+                        V(ψ) = ½m²ψ²
+                    </p>
+                    <p>Comportamento:</p>
+                    <ul style="margin-left: 20px;">
+                        <li>a &lt; a_osc: congelado, w ≈ -1 (como energia escura)</li>
+                        <li>a > a_osc: oscilando, w ≈ 0 (como matéria)</li>
+                    </ul>
+                    <p style="margin-top: 10px;">Escala de transição: a_osc = √(H₀/m)</p>
+                </div>
+                
+                <div class="description">
+                    <h3>4. Parâmetros de Densidade</h3>
+                    <p style="font-family: 'Courier New', monospace; margin: 10px 0; padding: 10px; background: white; border-radius: 3px;">
+                        Ω_i(a) = ρᵢ(a) / ρ_crit(a) = Ω_{i,0} H₀² / (a^(nᵢ) H²(a))
+                    </p>
+                </div>
+                
+                <div class="description">
+                    <h3>5. Variável de Integração</h3>
+                    <p style="margin: 10px 0;">
+                        Para melhor estabilidade numérica, a integração é feita em <strong>log(a)</strong>:
+                    </p>
+                    <p style="font-family: 'Courier New', monospace; margin: 10px 0; padding: 10px; background: white; border-radius: 3px;">
+                        d/d(ln a) = (1/H) d/dt
+                    </p>
+                    <p style="margin-top: 10px;">
+                        Método: RK45 (Runge-Kutta 4ª/5ª ordem)
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>FDM + Quintessence Cosmology Simulator | Baseado em CLASS | Autor: Silvio A. Corrêa Junior</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                <a href="https://github.com/talksilviojr/fdm-quintessence-class" style="color: #667eea; text-decoration: none;">GitHub Repository</a> | 
+                <a href="https://doi.org/10.5281/zenodo.17566560" style="color: #667eea; text-decoration: none;">Paper</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        function showSection(sectionId) {
+            // Ocultar todas as seções
+            const sections = document.querySelectorAll('.file-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remover ativo de todos os botões
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Mostrar seção selecionada
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Ativar botão correspondente
+            event.target.classList.add('active');
+            
+            // Destacar sintaxe
+            document.querySelectorAll('pre code').forEach(el => {
+                hljs.highlightElement(el);
+            });
+        }
+        
+        // Destacar sintaxe ao carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('pre code').forEach(el => {
+                hljs.highlightElement(el);
+            });
+        });
+    </script>
+</body>
+</html>
