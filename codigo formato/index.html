@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDM + Quintessence - Downloads</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .file-card {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .file-card:hover {
+            background: #f0f7ff;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .file-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .file-size {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0f7ff;
+        }
+        
+        .stats {
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .stat .value {
+            font-size: 1.8em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .stat .label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            color: #856404;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #ff9800;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #155724;
+        }
+        
+        .success-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌌 FDM + Quintessence</h1>
+            <p>Cosmology Simulator - CLASS Modificado</p>
+        </header>
+        
+        <div class="content">
+            <div class="success-box">
+                <strong>✅ Tudo funcionando perfeitamente!</strong>
+                Seu CLASS está rodando com sucesso. Todos os testes passaram! 🎉
+            </div>
+            
+            <!-- Arquivo de Código -->
+            <div class="file-card">
+                <h3>📝 Código Completo em HTML</h3>
+                <p>Visualização interativa de todo o código com syntax highlighting, incluindo:</p>
+                <ul style="margin-left: 20px; color: #666; margin-bottom: 10px;">
+                    <li>✓ cosmology.py (375 linhas)</li>
+                    <li>✓ app.py (436 linhas)</li>
+                    <li>✓ Equações cosmológicas</li>
+                    <li>✓ Documentação técnica</li>
+                </ul>
+                <div class="file-size">📦 Tamanho: 20 KB</div>
+                <div class="button-group">
+                    <a href="codigo_completo.html" class="btn btn-primary" target="_blank">
+                        🔍 Visualizar no Navegador
+                    </a>
+                    <button class="btn btn-secondary" onclick="downloadFile('codigo_completo.html', 'Código_FDM_Quintessence.html')">
+                        ⬇️ Baixar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Arquivo da Aplicação -->
+            <div class="file-card">
+                <h3>🎨 Interface Streamlit</h3>
+                <p>Acesse a aplicação web rodando em tempo real:</p>
+                <div class="file-size">🌐 Endereço: localhost:5000</div>
+                <div class="button-group">
+                    <a href="http://localhost:5000" class="btn btn-primary" target="_blank">
+                        🚀 Abrir Aplicação
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Arquivo de Código Python -->
+            <div class="file-card">
+                <h3>🔬 Módulos Python</h3>
+                <p>Arquivos principais do projeto:</p>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="downloadFile('cosmology.py', 'cosmology.py')">
+                        ⬇️ cosmology.py
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadFile('app.py', 'app.py')">
+                        ⬇️ app.py
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="stats">
+                <div class="stat">
+                    <div class="value">811</div>
+                    <div class="label">Linhas de Código</div>
+                </div>
+                <div class="stat">
+                    <div class="value">4</div>
+                    <div class="label">Modelos</div>
+                </div>
+                <div class="stat">
+                    <div class="value">2000</div>
+                    <div class="label">Pontos</div>
+                </div>
+                <div class="stat">
+                    <div class="value">100%</div>
+                    <div class="label">Testado</div>
+                </div>
+            </div>
+            
+            <!-- Instruções -->
+            <div class="info-box">
+                <strong>📥 Como Baixar os Arquivos:</strong>
+                <p>Clique nos botões acima para visualizar ou baixar. Os arquivos serão salvos no seu computador com o nome especificado. Você também pode acessar diretamente pelo Replit File Browser.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>FDM + Quintessence Cosmology Simulator | Baseado em CLASS</p>
+            <p style="margin-top: 10px;">Autor: Silvio A. Corrêa Junior | <a href="https://github.com/talksilviojr/fdm-quintessence-class" style="color: #667eea;">GitHub</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        function downloadFile(filename, displayName) {
+            // Criar um link para download
+            const link = document.createElement('a');
+            link.href = filename;
+            link.download = displayName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
